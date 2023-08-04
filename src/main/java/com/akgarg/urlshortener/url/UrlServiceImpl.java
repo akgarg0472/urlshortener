@@ -3,13 +3,15 @@ package com.akgarg.urlshortener.url;
 import com.akgarg.urlshortener.db.DatabaseService;
 import com.akgarg.urlshortener.encoding.EncoderService;
 import com.akgarg.urlshortener.exception.UrlShortnerException;
-import com.akgarg.urlshortener.logger.UrlLogger;
+import com.akgarg.urlshortener.numbergenerator.NumberGeneratorService;
+import com.akgarg.urlshortener.utils.UrlLogger;
 import com.akgarg.urlshortener.request.ShortUrlRequest;
 import com.akgarg.urlshortener.statistics.EventType;
 import com.akgarg.urlshortener.statistics.StatisticsEvent;
 import com.akgarg.urlshortener.statistics.StatisticsService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -22,36 +24,51 @@ public class UrlServiceImpl implements UrlService {
     private final EncoderService encoderService;
     private final DatabaseService databaseService;
     private final StatisticsService statisticsService;
+    private final NumberGeneratorService numberGeneratorService;
+    private final String domain;
 
     public UrlServiceImpl(
-            final DatabaseService databaseService,
             final EncoderService encoderService,
-            final StatisticsService statisticsService
+            final DatabaseService databaseService,
+            final StatisticsService statisticsService,
+            final NumberGeneratorService numberGeneratorService,
+            @Value("${url.shortener.domain}") final String domain
     ) {
-        this.databaseService = databaseService;
         this.encoderService = encoderService;
+        this.databaseService = databaseService;
         this.statisticsService = statisticsService;
+        this.numberGeneratorService = numberGeneratorService;
+        this.domain = domain;
     }
 
     @Override
     public String generateShortUrl(final HttpServletRequest httpRequest, final @Valid ShortUrlRequest request) {
         LOGGER.info("Received request to short original url: {}", request);
 
-        final String shortUrl = encoderService.encode(request.originalUrl());
-        LOGGER.debug("Encoder service response for {} is {}", request, shortUrl);
+        final var shortUrlNumber = numberGeneratorService.generateNumber();
+        LOGGER.debug("NUmber generated for '{}' is {}", request.originalUrl(), shortUrlNumber);
 
-        final var urlMetadata = new UrlMetadata(shortUrl, request.originalUrl(), request.userId());
-        final boolean urlSaved = databaseService.saveUrlMetadata(urlMetadata);
+        final var shortUrl = encoderService.encode(shortUrlNumber);
+        LOGGER.debug("Encoded string for {} is {}", shortUrlNumber, shortUrl);
+
+        final var urlMetadata = new UrlMetadata(
+                shortUrl,
+                request.originalUrl(),
+                request.userId(),
+                System.currentTimeMillis()
+        );
+
+        final var urlSaved = databaseService.saveUrlMetadata(urlMetadata);
 
         if (!urlSaved) {
-            handleUrlSaveFailure(httpRequest, request, urlMetadata);
+            handleUrlSaveFailureAndThrowException(httpRequest, request, urlMetadata);
         }
 
-        publishStatisticsEvent(httpRequest, urlMetadata, EventType.URL_CREATE_SUCCESS);
+        generateStatisticsEvent(httpRequest, urlMetadata, EventType.URL_CREATE_SUCCESS);
 
         LOGGER.info("Url shorten successfully: {}", urlMetadata);
 
-        return urlMetadata.shortUrl();
+        return domain + urlMetadata.getShortUrl();
     }
 
     @Override
@@ -62,50 +79,48 @@ public class UrlServiceImpl implements UrlService {
         LOGGER.debug("Fetched url metadata for {} is {}", shortUrl, urlMetadata.orElse(null));
 
         if (urlMetadata.isEmpty()) {
-            handleUrlRetrieveNotFound(httpRequest, shortUrl);
-            return null;
+            handleUrlFindFailureAndThrowException(httpRequest, shortUrl);
         }
 
-        return URI.create(urlMetadata.get().originalUrl());
+        return URI.create(urlMetadata.get().getOriginalUrl());
     }
 
-    private void handleUrlRetrieveNotFound(
+    private void handleUrlFindFailureAndThrowException(
             final HttpServletRequest httpRequest,
             final String shortUrl
-    ) throws UrlShortnerException {
+    ) {
         LOGGER.error("Failed to retrieve original URL for {}", shortUrl);
-
-        publishStatisticsEvent(httpRequest, new UrlMetadata(shortUrl, null, null), EventType.URL_VISIT_FAILED);
-
+        generateStatisticsEvent(httpRequest, UrlMetadata.of(shortUrl), EventType.URL_VISIT_FAILED);
         final var errors = new String[]{"Failed to retrieve original URL for " + shortUrl};
         throw new UrlShortnerException(errors, 404);
     }
 
-    private void handleUrlSaveFailure(
+    private void handleUrlSaveFailureAndThrowException(
             final HttpServletRequest httpRequest,
             final @Valid ShortUrlRequest request,
             final UrlMetadata urlMetadata
     ) throws UrlShortnerException {
-        LOGGER.error("Error shortening URL: ", request);
-
-        publishStatisticsEvent(httpRequest, urlMetadata, EventType.URL_CREATE_FAILED);
-
+        LOGGER.error("Shortening URL failed: {}", request);
+        generateStatisticsEvent(httpRequest, urlMetadata, EventType.URL_CREATE_FAILED);
         final var errors = new String[]{"Failed to shorten URL: " + request.originalUrl()};
         throw new UrlShortnerException(errors, 500);
     }
 
-    private void publishStatisticsEvent(
+    private void generateStatisticsEvent(
             final HttpServletRequest httpRequest,
             final UrlMetadata urlMetadata,
             final EventType eventType
     ) {
         final var statisticsEvent = new StatisticsEvent(
-                urlMetadata.shortUrl(),
-                urlMetadata.originalUrl(),
-                urlMetadata.userId(),
+                urlMetadata.getShortUrl(),
+                urlMetadata.getOriginalUrl(),
+                urlMetadata.getUserId(),
                 httpRequest.getRemoteAddr(),
-                httpRequest.getHeader("USER-AGENT")
+                httpRequest.getHeader("USER-AGENT"),
+                urlMetadata.getCreatedAt()
         );
+
+        LOGGER.trace("[{}] Generating statistics event: {}", eventType, statisticsEvent);
 
         statisticsService.publishEvent(statisticsEvent, eventType);
     }

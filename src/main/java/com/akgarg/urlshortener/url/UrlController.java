@@ -26,6 +26,7 @@ public class UrlController {
             final BindingResult validationResult
     ) {
         checkValidationResultAndThrowExceptionOnFailedValidation(validationResult);
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(urlService.generateShortUrl(httpRequest, request));
     }

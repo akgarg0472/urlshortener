@@ -1,4 +1,4 @@
-package com.akgarg.urlshortener.logger;
+package com.akgarg.urlshortener.utils;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;

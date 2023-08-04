@@ -5,6 +5,7 @@ public record StatisticsEvent(
         String originalUrl,
         String userId,
         String ipAddress,
-        String userAgent
+        String userAgent,
+        Long urlCreatedAt
 ) {
 }

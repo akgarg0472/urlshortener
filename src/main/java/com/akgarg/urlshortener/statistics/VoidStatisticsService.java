@@ -10,7 +10,7 @@ public class VoidStatisticsService implements StatisticsService {
 
     @Override
     public void publishEvent(final StatisticsEvent statisticsEvent, final EventType eventType) {
-        LOGGER.info("[{}] Publishing statistics event to void: {}", eventType, statisticsEvent);
+        LOGGER.info("Publishing '{}' event: {}", eventType.name().toLowerCase(), statisticsEvent);
     }
 
 }

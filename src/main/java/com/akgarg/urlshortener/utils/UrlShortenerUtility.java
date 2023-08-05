@@ -1,6 +1,8 @@
 package com.akgarg.urlshortener.utils;
 
 import com.akgarg.urlshortener.exception.BadRequestException;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.BindingResult;
 
 public final class UrlShortenerUtility {
@@ -15,13 +17,17 @@ public final class UrlShortenerUtility {
         if (validationResult.hasFieldErrors()) {
             final String[] errors = validationResult.getFieldErrors()
                     .stream()
-                    .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
                     .toList()
                     .toArray(String[]::new);
 
             throw new BadRequestException(errors);
         }
+    }
 
+    public static Object extractRequestIdFromRequest(final HttpServletRequest httpRequest) {
+        final var requestId = httpRequest.getAttribute("requestId");
+        return requestId != null ? requestId : System.nanoTime();
     }
 
 }

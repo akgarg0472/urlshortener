@@ -32,7 +32,7 @@ public class InMemoryDatabaseService implements DatabaseService {
         LOGGER.info("Fetching url metadata for {}", shortUrl);
         final var urlMetadata = db.get(shortUrl);
         LOGGER.trace("Metadata fetched for {}: {}", shortUrl, urlMetadata);
-        return Optional.of(urlMetadata);
+        return Optional.ofNullable(urlMetadata);
     }
-
+    
 }

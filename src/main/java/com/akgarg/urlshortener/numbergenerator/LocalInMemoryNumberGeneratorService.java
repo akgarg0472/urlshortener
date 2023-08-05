@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class LocalInMemoryNumberGeneratorService implements NumberGeneratorService {
 
     private static final UrlLogger LOGGER = UrlLogger.getLogger(LocalInMemoryNumberGeneratorService.class);
-    private final AtomicLong counter = new AtomicLong(1_00_00_00_000L);
+    private final AtomicLong counter = new AtomicLong(1_00_00_00_00_000L);
 
     @Override
     public long generateNumber() {
@@ -17,7 +17,7 @@ public class LocalInMemoryNumberGeneratorService implements NumberGeneratorServi
 
         final long number = counter.getAndIncrement();
 
-        LOGGER.trace("Globally unique number generated is: {}", number);
+        LOGGER.trace("Globally unique number generated: {}", number);
 
         return number;
     }

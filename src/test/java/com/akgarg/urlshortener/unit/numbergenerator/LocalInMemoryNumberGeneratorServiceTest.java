@@ -1,33 +1,27 @@
 package com.akgarg.urlshortener.unit.numbergenerator;
 
 import com.akgarg.urlshortener.numbergenerator.LocalInMemoryNumberGeneratorService;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 final class LocalInMemoryNumberGeneratorServiceTest {
 
-    private LocalInMemoryNumberGeneratorService numberGeneratorService;
-
-    @BeforeEach
-    void setUp() {
-        this.numberGeneratorService = new LocalInMemoryNumberGeneratorService();
-    }
-
-    @AfterEach
-    void tearDown() {
-        this.numberGeneratorService = null;
-    }
-
     @Test
     void generateNumberMethod_ShouldReturn_ExpectedOutput() {
-        final var expectedOutput = 1_00_00_00_000L;
+        final var numberGeneratorService = new LocalInMemoryNumberGeneratorService();
+        final var expectedOutputs = new long[]{
+                1_00_00_00_000L,
+                1_00_00_00_001L,
+                1_00_00_00_002L,
+                1_00_00_00_003L,
+                1_00_00_00_004L,
+        };
 
-        final var generateNumberResult = numberGeneratorService.generateNumber();
-
-        assertEquals(expectedOutput, generateNumberResult, "Actual and expected generate number output are not same");
+        for (long expectedOutput : expectedOutputs) {
+            final var generateNumberResult = numberGeneratorService.generateNumber();
+            assertEquals(expectedOutput, generateNumberResult, "Actual and expected generate number output are not same");
+        }
     }
 
 }

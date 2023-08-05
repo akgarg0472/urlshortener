@@ -1,15 +1,21 @@
 package com.akgarg.urlshortener.exception;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+
 import static com.akgarg.urlshortener.exception.ApiErrorResponse.ApiErrorType.*;
 
+@Getter
 public final class ApiErrorResponse {
 
     private final String[] errors;
-    private final ApiErrorType errorType;
+
+    @JsonProperty("error_code")
+    private final int errorCode;
 
     private ApiErrorResponse(final String[] errors, final ApiErrorType errorType) {
         this.errors = errors;
-        this.errorType = errorType;
+        this.errorCode = errorType.code();
     }
 
     static ApiErrorResponse badRequestErrorResponse(final BadRequestException e) {
@@ -38,10 +44,6 @@ public final class ApiErrorResponse {
 
     static ApiErrorResponse internalServerErrorResponse() {
         return new ApiErrorResponse(new String[]{"Internal Server Error"}, INTERNAL_SERVER_ERROR);
-    }
-
-    public ApiErrorType getErrorType() {
-        return errorType;
     }
 
     @SuppressWarnings("unused")

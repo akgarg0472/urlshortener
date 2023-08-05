@@ -24,11 +24,11 @@ public class GlobalExceptionHandler {
         final ApiErrorResponse errorResponse = switch (e.getClass().getSimpleName()) {
             case "HttpRequestMethodNotSupportedException" -> methodNotAllowedErrorResponse();
             case "HttpMediaTypeNotSupportedException" -> badRequestErrorResponse("Media type is not supported");
-            case "HttpMessageNotReadableException" -> badRequestErrorResponse("Invalid request body");
+            case "HttpMessageNotReadableException" -> badRequestErrorResponse("Please provide valid request body");
             default -> internalServerErrorResponse();
         };
 
-        return ResponseEntity.status(errorResponse.getErrorType().code())
+        return ResponseEntity.status(errorResponse.getErrorCode())
                 .body(errorResponse);
     }
 

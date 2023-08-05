@@ -44,138 +44,92 @@ public class DefaultUrlService implements UrlService {
     }
 
     @Override
-    public String generateShortUrl(
-            final HttpServletRequest httpRequest,
-            final @Valid ShortUrlRequest request
-    ) {
+    public String generateShortUrl(final HttpServletRequest httpRequest, final @Valid ShortUrlRequest request) {
         final var requestId = extractRequestIdFromRequest(httpRequest);
         final var startTime = System.currentTimeMillis();
 
-        LOGGER.info(
-                "[{}]: Received request to short original url: {}",
-                requestId,
-                request
-        );
+        LOGGER.info("[{}]: Received: {}", requestId, request);
 
         final var shortUrlNumber = numberGeneratorService.generateNumber();
-        LOGGER.debug(
-                "[{}]: NUmber generated for '{}' is {}",
-                requestId,
-                request.originalUrl(),
-                shortUrlNumber
-        );
+        LOGGER.debug("[{}]: Number generated for '{}' is {}", requestId, request.originalUrl(), shortUrlNumber);
+
+        if (shortUrlNumber <= 0) {
+            LOGGER.error("[{}]: Failed to generate number for {}", requestId, request);
+            handleShorteningFailureAndThrowException(httpRequest, request, startTime);
+        }
 
         final var shortUrl = encoderService.encode(shortUrlNumber);
-        LOGGER.debug(
-                "[{}]: Encoded string for {} is {}",
-                requestId,
-                shortUrlNumber,
-                shortUrl
-        );
+        LOGGER.debug("[{}]: Encoded string for {} is {}", requestId, shortUrlNumber, shortUrl);
 
-        final var urlMetadata = new UrlMetadata(
-                shortUrl,
-                request.originalUrl(),
-                request.userId(),
-                System.currentTimeMillis()
-        );
+        final var urlMetadata = new UrlMetadata(shortUrl, request.originalUrl(), request.userId(), System.currentTimeMillis());
 
         final var urlSaved = databaseService.saveUrlMetadata(urlMetadata);
 
         if (!urlSaved) {
-            handleUrlSaveFailureAndThrowException(httpRequest, request, urlMetadata, startTime);
+            LOGGER.error("[{}]: Shortening URL failed: {}", requestId, request);
+            handleShorteningFailureAndThrowException(httpRequest, request, startTime);
         }
 
         generateStatisticsEvent(httpRequest, urlMetadata, EventType.URL_CREATE_SUCCESS, startTime);
 
-        LOGGER.info(
-                "[{}]: Url shorten successfully: {}",
-                requestId,
-                urlMetadata
-        );
+        LOGGER.info("[{}]: Url shorten successfully: {}", requestId, urlMetadata);
 
         return domain + urlMetadata.getShortUrl();
     }
 
     @Override
-    public URI getOriginalUrl(
-            final HttpServletRequest httpRequest,
-            final String shortUrl
-    ) {
+    public URI getOriginalUrl(final HttpServletRequest httpRequest, final String shortUrl) {
         final var requestId = extractRequestIdFromRequest(httpRequest);
-
-        LOGGER.info(
-                "[{}]: Received request to get original url for {}",
-                requestId,
-                shortUrl
-        );
+        LOGGER.info("[{}]: Received request to get original url for {}", requestId, shortUrl);
 
         final var startTime = System.currentTimeMillis();
         final var urlMetadata = databaseService.getUrlMetadataByShortUrl(shortUrl);
 
-        LOGGER.debug(
-                "[{}]: Metadata fetched for {} is {}",
-                requestId,
-                shortUrl,
-                urlMetadata.orElse(null)
-        );
+        LOGGER.debug("[{}]: Metadata fetched for {} is {}", requestId, shortUrl, urlMetadata.orElse(null));
 
         if (urlMetadata.isEmpty()) {
+            LOGGER.error("[{}]: Failed to retrieve original URL for {}", requestId, shortUrl);
             handleUrlFindFailureAndThrowException(httpRequest, shortUrl, startTime);
         }
 
         final var originalUri = URI.create(urlMetadata.get().getOriginalUrl());
 
-        LOGGER.debug(
-                "[{}]: Original URI for {} is {}",
-                requestId,
-                shortUrl,
-                originalUri
-        );
+        generateStatisticsEvent(httpRequest, urlMetadata.get(), EventType.URL_GET_SUCCESS, startTime);
+
+        LOGGER.debug("[{}]: Original URI for {} is {}", requestId, shortUrl, originalUri);
 
         return originalUri;
     }
 
-    private void handleUrlFindFailureAndThrowException(
-            final HttpServletRequest httpRequest,
-            final String shortUrl,
-            final long startTime
-    ) throws UrlShortnerException {
-        final var requestId = extractRequestIdFromRequest(httpRequest);
-
-        LOGGER.error(
-                "[{}]: Failed to retrieve original URL for {}",
-                requestId,
-                shortUrl
+    private void handleShorteningFailureAndThrowException(
+            final HttpServletRequest httpRequest, final ShortUrlRequest request, final long startTime
+    ) {
+        generateStatisticsEvent(
+                httpRequest,
+                UrlMetadata.fromShortUrl(request.originalUrl()),
+                EventType.URL_CREATE_FAILED,
+                startTime
         );
 
-        generateStatisticsEvent(httpRequest, UrlMetadata.of(shortUrl), EventType.URL_GET_FAILED, startTime);
+        throw new UrlShortnerException(
+                new String[]{"Error shortening url: " + request.originalUrl()},
+                500
+        );
+    }
+
+    private void handleUrlFindFailureAndThrowException(
+            final HttpServletRequest httpRequest, final String shortUrl, final long startTime
+    ) throws UrlShortnerException {
+        generateStatisticsEvent(
+                httpRequest,
+                UrlMetadata.fromShortUrl(shortUrl),
+                EventType.URL_GET_FAILED,
+                startTime
+        );
 
         throw new UrlShortnerException(
                 new String[]{shortUrl + " not found"},
                 404
-        );
-    }
-
-    private void handleUrlSaveFailureAndThrowException(
-            final HttpServletRequest httpRequest,
-            final @Valid ShortUrlRequest request,
-            final UrlMetadata urlMetadata,
-            final long startTime
-    ) throws UrlShortnerException {
-        final var requestId = extractRequestIdFromRequest(httpRequest);
-
-        LOGGER.error(
-                "[{}]: Shortening URL failed: {}",
-                requestId,
-                request
-        );
-
-        generateStatisticsEvent(httpRequest, urlMetadata, EventType.URL_CREATE_FAILED, startTime);
-
-        throw new UrlShortnerException(
-                new String[]{"Failed to shorten URL: " + request.originalUrl()},
-                500
         );
     }
 

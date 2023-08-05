@@ -20,6 +20,7 @@ final class Base62EncoderServiceTest {
     @AfterEach
     void tearDown() {
         this.encoderService = null;
+        System.out.println();
     }
 
     @Test
@@ -35,14 +36,12 @@ final class Base62EncoderServiceTest {
     @Test
     void encodeMethod_ShouldThrowIllegalArgumentException_WhenInputIsNegative() {
         final var number = -1L;
-
         assertThrows(IllegalArgumentException.class, () -> encoderService.encode(number));
     }
 
     @Test
     void encodeMethod_ShouldThrowIllegalArgumentException_WhenInputIsZero() {
         final var number = 0L;
-
         assertThrows(IllegalArgumentException.class, () -> encoderService.encode(number));
     }
 

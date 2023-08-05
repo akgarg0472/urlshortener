@@ -19,7 +19,7 @@ public class UrlMetadata {
         this.createdAt = createdAt;
     }
 
-    public static UrlMetadata of(final String shortUrl) {
+    public static UrlMetadata fromShortUrl(final String shortUrl) {
         return new UrlMetadata(shortUrl, null, null, null);
     }
 

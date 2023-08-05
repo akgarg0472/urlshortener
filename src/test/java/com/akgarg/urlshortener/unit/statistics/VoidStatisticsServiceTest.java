@@ -15,7 +15,7 @@ final class VoidStatisticsServiceTest {
     void publishEvent_ShouldLogEventDetails() {
         final var voidStatisticsService = new VoidStatisticsService();
 
-        final var statisticsEvent = FakerService.getFakeStatisticsEvent();
+        final var statisticsEvent = FakerService.fakeStatisticsEvent();
         final var eventType = EventType.values()[new Random().nextInt(EventType.values().length)];
 
         assertNotNull(statisticsEvent, "Statistics event is null");

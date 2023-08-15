@@ -19,7 +19,7 @@ public class UrlController {
         this.urlService = urlService;
     }
 
-    @PostMapping("/api/v1/url-shortener")
+    @PostMapping("/urlshortener/")
     public ResponseEntity<String> generateShortUrl(
             final HttpServletRequest httpRequest,
             @Valid @RequestBody final ShortUrlRequest request,

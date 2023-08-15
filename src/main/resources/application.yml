@@ -1,0 +1,12 @@
+url:
+  shortener:
+    domain: http://localhost:8080/
+
+spring:
+  application:
+    name: urlshortener-service
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

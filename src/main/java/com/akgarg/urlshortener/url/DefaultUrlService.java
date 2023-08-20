@@ -90,6 +90,7 @@ public class DefaultUrlService implements UrlService {
         if (urlMetadata.isEmpty()) {
             LOGGER.error("[{}]: Failed to retrieve original URL for {}", requestId, shortUrl);
             handleUrlFindFailureAndThrowException(httpRequest, shortUrl, startTime);
+            return null;
         }
 
         final var originalUri = URI.create(urlMetadata.get().getOriginalUrl());
@@ -144,6 +145,7 @@ public class DefaultUrlService implements UrlService {
 
         final var statisticsEvent = new StatisticsEvent(
                 requestId,
+                eventType,
                 urlMetadata.getShortUrl(),
                 urlMetadata.getOriginalUrl(),
                 urlMetadata.getUserId(),
@@ -153,7 +155,7 @@ public class DefaultUrlService implements UrlService {
                 eventDuration
         );
 
-        statisticsService.publishEvent(statisticsEvent, eventType);
+        statisticsService.publishEvent(statisticsEvent);
     }
 
 }

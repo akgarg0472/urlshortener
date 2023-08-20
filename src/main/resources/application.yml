@@ -5,8 +5,19 @@ url:
 spring:
   application:
     name: urlshortener-service
+  profiles:
+    active: prod
+  kafka:
+    bootstrap-servers: localhost:9092
 
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+kafka:
+  statistics:
+    topic:
+      name: urlshortener-statistics-events
+      partitions: 1
+      replication-factor: 1

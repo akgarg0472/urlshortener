@@ -1,5 +1,6 @@
 package com.akgarg.urlshortener.unit.faker;
 
+import com.akgarg.urlshortener.statistics.EventType;
 import com.akgarg.urlshortener.statistics.StatisticsEvent;
 import com.akgarg.urlshortener.url.UrlMetadata;
 import com.github.javafaker.Faker;
@@ -19,9 +20,11 @@ public class FakerService {
         final var userAgent = faker.internet().userAgentAny();
         final var createdAt = faker.date().past(10_000, TimeUnit.MILLISECONDS).getTime();
         final var eventDuration = System.currentTimeMillis() - createdAt;
+        final var eventType = faker.options().option(EventType.class);
 
         return new StatisticsEvent(
                 requestId,
+                eventType,
                 shortUrl,
                 originalUrl,
                 userId,

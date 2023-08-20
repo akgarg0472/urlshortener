@@ -2,13 +2,11 @@ package com.akgarg.urlshortener.db;
 
 import com.akgarg.urlshortener.url.UrlMetadata;
 import com.akgarg.urlshortener.utils.UrlLogger;
-import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Service
 public class InMemoryDatabaseService implements DatabaseService {
 
     private static final UrlLogger LOGGER = UrlLogger.getLogger(InMemoryDatabaseService.class);
@@ -34,5 +32,5 @@ public class InMemoryDatabaseService implements DatabaseService {
         LOGGER.trace("Metadata fetched for {}: {}", shortUrl, urlMetadata);
         return Optional.ofNullable(urlMetadata);
     }
-    
+
 }

@@ -20,7 +20,7 @@ public class InMemoryDatabaseService implements DatabaseService {
     @Override
     public boolean saveUrlMetadata(final UrlMetadata urlMetadata) {
         LOGGER.info("Going to save {} in DB", urlMetadata);
-        db.put(urlMetadata.getShortUrl(), urlMetadata);
+        db.put(urlMetadata.shortUrl(), urlMetadata);
         LOGGER.debug("{} saved in db successfully", urlMetadata);
         return true;
     }

@@ -8,7 +8,7 @@ public record StatisticsEvent(
         String userId,
         String ipAddress,
         String userAgent,
-        Long urlCreatedAt,
+        Long createdAt,
         long eventDuration
 ) {
 }

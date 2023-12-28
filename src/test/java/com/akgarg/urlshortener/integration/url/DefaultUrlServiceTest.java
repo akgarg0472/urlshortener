@@ -2,7 +2,7 @@ package com.akgarg.urlshortener.integration.url;
 
 import com.akgarg.urlshortener.db.DatabaseService;
 import com.akgarg.urlshortener.encoding.EncoderService;
-import com.akgarg.urlshortener.exception.UrlShortnerException;
+import com.akgarg.urlshortener.exception.UrlShortenerException;
 import com.akgarg.urlshortener.numbergenerator.NumberGeneratorService;
 import com.akgarg.urlshortener.request.ShortUrlRequest;
 import com.akgarg.urlshortener.statistics.StatisticsService;
@@ -103,9 +103,9 @@ final class DefaultUrlServiceTest {
         final var request = new ShortUrlRequest(userId, originalUrl);
 
         assertThrows(
-                UrlShortnerException.class,
+                UrlShortenerException.class,
                 () -> urlService.generateShortUrl(httpRequest, request),
-                "generateShortUrl method should throw UrlShortnerException when number generator service returns zero"
+                "generateShortUrl method should throw UrlShortenerException when number generator service returns zero"
         );
 
         verify(numberGeneratorService, times(1)).generateNumber();
@@ -130,9 +130,9 @@ final class DefaultUrlServiceTest {
         final var request = new ShortUrlRequest(userId, originalUrl);
 
         assertThrows(
-                UrlShortnerException.class,
+                UrlShortenerException.class,
                 () -> urlService.generateShortUrl(httpRequest, request),
-                "generateShortUrl method should throw UrlShortnerException when number generator service returns negative number"
+                "generateShortUrl method should throw UrlShortenerException when number generator service returns negative number"
         );
 
         verify(numberGeneratorService, times(1)).generateNumber();
@@ -160,9 +160,9 @@ final class DefaultUrlServiceTest {
         final var request = new ShortUrlRequest(userId, originalUrl);
 
         assertThrows(
-                UrlShortnerException.class,
+                UrlShortenerException.class,
                 () -> urlService.generateShortUrl(httpRequest, request),
-                "generateShortUrl method should throw UrlShortnerException when database save failed"
+                "generateShortUrl method should throw UrlShortenerException when database save failed"
         );
 
         verify(numberGeneratorService, times(1)).generateNumber();
@@ -176,8 +176,8 @@ final class DefaultUrlServiceTest {
     void getShortUrl_ShouldReturn_OriginalUrl() {
         final var urlMetadata = FakerService.fakeUrlMetadata();
         final var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64";
-        final var shortUrl = urlMetadata.getShortUrl();
-        final var expectedOriginalUrl = URI.create(urlMetadata.getOriginalUrl());
+        final var shortUrl = urlMetadata.shortUrl();
+        final var expectedOriginalUrl = URI.create(urlMetadata.originalUrl());
 
         when(databaseService.getUrlMetadataByShortUrl(shortUrl)).thenReturn(Optional.of(urlMetadata));
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
@@ -204,9 +204,9 @@ final class DefaultUrlServiceTest {
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
         assertThrowsExactly(
-                UrlShortnerException.class,
+                UrlShortenerException.class,
                 () -> urlService.getOriginalUrl(httpRequest, shortUrl),
-                "getOriginalUrl method should throw UrlShortnerException when url metadata not found"
+                "getOriginalUrl method should throw UrlShortenerException when url metadata not found"
         );
 
         verify(databaseService, times(1)).getUrlMetadataByShortUrl(shortUrl);

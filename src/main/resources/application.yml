@@ -1,6 +1,6 @@
 url:
   shortener:
-    domain: http://localhost:8080/
+    domain: http://localhost:8765/
 
 spring:
   application:

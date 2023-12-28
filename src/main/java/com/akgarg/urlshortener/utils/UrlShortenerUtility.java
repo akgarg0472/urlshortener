@@ -21,7 +21,7 @@ public final class UrlShortenerUtility {
                     .toList()
                     .toArray(String[]::new);
 
-            throw new BadRequestException(errors);
+            throw new BadRequestException(errors, "Request Validation Failed");
         }
     }
 

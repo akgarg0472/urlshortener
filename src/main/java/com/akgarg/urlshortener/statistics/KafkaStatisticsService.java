@@ -24,7 +24,11 @@ public class KafkaStatisticsService implements StatisticsService {
 
     @Override
     public void publishEvent(final StatisticsEvent statisticsEvent) {
-        serializeEvent(statisticsEvent).ifPresent(eventJson -> kafkaTemplate.send(statisticsTopicName, eventJson));
+        serializeEvent(statisticsEvent)
+                .ifPresent(eventJson -> {
+                    kafkaTemplate.send(statisticsTopicName, eventJson)
+                            .whenComplete((s1, s2) -> System.out.println(s1 + " : " + s2));
+                });
     }
 
     private Optional<String> serializeEvent(final StatisticsEvent statisticsEvent) {

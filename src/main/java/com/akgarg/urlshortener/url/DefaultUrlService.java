@@ -2,9 +2,10 @@ package com.akgarg.urlshortener.url;
 
 import com.akgarg.urlshortener.db.DatabaseService;
 import com.akgarg.urlshortener.encoding.EncoderService;
-import com.akgarg.urlshortener.exception.UrlShortnerException;
+import com.akgarg.urlshortener.exception.UrlShortenerException;
 import com.akgarg.urlshortener.numbergenerator.NumberGeneratorService;
 import com.akgarg.urlshortener.request.ShortUrlRequest;
+import com.akgarg.urlshortener.response.GenerateUrlResponse;
 import com.akgarg.urlshortener.statistics.EventType;
 import com.akgarg.urlshortener.statistics.StatisticsEvent;
 import com.akgarg.urlshortener.statistics.StatisticsService;
@@ -44,7 +45,10 @@ public class DefaultUrlService implements UrlService {
     }
 
     @Override
-    public String generateShortUrl(final HttpServletRequest httpRequest, final @Valid ShortUrlRequest request) {
+    public GenerateUrlResponse generateShortUrl(
+            final HttpServletRequest httpRequest,
+            @Valid final ShortUrlRequest request
+    ) {
         final var requestId = extractRequestIdFromRequest(httpRequest);
         final var startTime = System.currentTimeMillis();
 
@@ -74,7 +78,15 @@ public class DefaultUrlService implements UrlService {
 
         LOGGER.info("[{}]: Url shorten successfully: {}", requestId, urlMetadata);
 
-        return domain + urlMetadata.getShortUrl();
+        final String shortUrlWithDomain = domain + urlMetadata.shortUrl();
+
+        LOGGER.info("[{}]: Short URL for {} is {}", requestId, request.originalUrl(), shortUrl);
+
+        return new GenerateUrlResponse(
+                shortUrlWithDomain,
+                request.originalUrl(),
+                201
+        );
     }
 
     @Override
@@ -93,7 +105,7 @@ public class DefaultUrlService implements UrlService {
             return null;
         }
 
-        final var originalUri = URI.create(urlMetadata.get().getOriginalUrl());
+        final var originalUri = URI.create(urlMetadata.get().originalUrl());
 
         generateStatisticsEvent(httpRequest, urlMetadata.get(), EventType.URL_GET_SUCCESS, startTime);
 
@@ -112,15 +124,16 @@ public class DefaultUrlService implements UrlService {
                 startTime
         );
 
-        throw new UrlShortnerException(
+        throw new UrlShortenerException(
                 new String[]{"Error shortening url: " + request.originalUrl()},
-                500
+                500,
+                "Internal Server Error"
         );
     }
 
     private void handleUrlFindFailureAndThrowException(
             final HttpServletRequest httpRequest, final String shortUrl, final long startTime
-    ) throws UrlShortnerException {
+    ) throws UrlShortenerException {
         generateStatisticsEvent(
                 httpRequest,
                 UrlMetadata.fromShortUrl(shortUrl),
@@ -128,9 +141,10 @@ public class DefaultUrlService implements UrlService {
                 startTime
         );
 
-        throw new UrlShortnerException(
+        throw new UrlShortenerException(
                 new String[]{shortUrl + " not found"},
-                404
+                404,
+                "Requested URL not found"
         );
     }
 
@@ -146,12 +160,12 @@ public class DefaultUrlService implements UrlService {
         final var statisticsEvent = new StatisticsEvent(
                 requestId,
                 eventType,
-                urlMetadata.getShortUrl(),
-                urlMetadata.getOriginalUrl(),
-                urlMetadata.getUserId(),
+                urlMetadata.shortUrl(),
+                urlMetadata.originalUrl(),
+                urlMetadata.userId(),
                 httpRequest.getRemoteAddr(),
                 httpRequest.getHeader("USER-AGENT"),
-                urlMetadata.getCreatedAt(),
+                urlMetadata.createdAt(),
                 eventDuration
         );
 

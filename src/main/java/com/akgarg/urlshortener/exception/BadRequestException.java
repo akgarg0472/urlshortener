@@ -1,15 +1,16 @@
 package com.akgarg.urlshortener.exception;
 
+import lombok.Getter;
+
+@Getter
 public class BadRequestException extends RuntimeException {
 
     private final String[] errors;
+    private final String message;
 
-    public BadRequestException(final String[] errors) {
+    public BadRequestException(final String[] errors, String message) {
         this.errors = errors;
-    }
-
-    public String[] getErrors() {
-        return this.errors;
+        this.message = message;
     }
 
 }

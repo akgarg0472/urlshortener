@@ -1,6 +1,6 @@
-package com.akgarg.urlshortener.db;
+package com.akgarg.urlshortener.url.v1.db;
 
-import com.akgarg.urlshortener.url.UrlMetadata;
+import com.akgarg.urlshortener.url.v1.UrlMetadata;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.InitializingBean;

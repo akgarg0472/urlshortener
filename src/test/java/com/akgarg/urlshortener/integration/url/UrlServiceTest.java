@@ -1,14 +1,13 @@
 package com.akgarg.urlshortener.integration.url;
 
-import com.akgarg.urlshortener.db.DatabaseService;
 import com.akgarg.urlshortener.encoding.EncoderService;
 import com.akgarg.urlshortener.exception.UrlShortenerException;
 import com.akgarg.urlshortener.numbergenerator.NumberGeneratorService;
 import com.akgarg.urlshortener.request.ShortUrlRequest;
 import com.akgarg.urlshortener.statistics.StatisticsService;
 import com.akgarg.urlshortener.unit.faker.FakerService;
-import com.akgarg.urlshortener.url.DefaultUrlService;
-import com.akgarg.urlshortener.url.UrlService;
+import com.akgarg.urlshortener.url.v1.UrlService;
+import com.akgarg.urlshortener.url.v1.db.DatabaseService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +22,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-final class DefaultUrlServiceTest {
+final class UrlServiceTest {
 
     private static final String domain = "http://localhost:8080/";
     private static final String ATTRIBUTE_REQUEST_ID = "requestId";
@@ -46,7 +45,7 @@ final class DefaultUrlServiceTest {
     @BeforeEach
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
-        urlService = new DefaultUrlService(
+        urlService = new UrlService(
                 encoderService,
                 databaseService,
                 statisticsService,
@@ -70,7 +69,7 @@ final class DefaultUrlServiceTest {
         final var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64";
         final var expectedShortUrl = domain + shortUrl;
 
-        when(numberGeneratorService.generateNumber()).thenReturn(number);
+        when(numberGeneratorService.generateNextNumber()).thenReturn(number);
         when(encoderService.encode(number)).thenReturn(shortUrl);
         when(databaseService.saveUrlMetadata(ArgumentMatchers.any())).thenReturn(true);
         when(httpRequest.getAttribute("requestId")).thenReturn(System.nanoTime());
@@ -79,7 +78,7 @@ final class DefaultUrlServiceTest {
         final var request = new ShortUrlRequest(userId, originalUrl);
         final var generatedShorUrl = urlService.generateShortUrl(httpRequest, request);
 
-        verify(numberGeneratorService, times(1)).generateNumber();
+        verify(numberGeneratorService, times(1)).generateNextNumber();
         verify(encoderService, times(1)).encode(number);
         verify(databaseService, times(1)).saveUrlMetadata(ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
@@ -96,7 +95,7 @@ final class DefaultUrlServiceTest {
         final var userId = "4b34ed1400fd06ef21f";
         final var originalUrl = "https://www.google.com";
 
-        when(numberGeneratorService.generateNumber()).thenReturn(number);
+        when(numberGeneratorService.generateNextNumber()).thenReturn(number);
         when(httpRequest.getAttribute("requestId")).thenReturn(requestId);
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
@@ -108,7 +107,7 @@ final class DefaultUrlServiceTest {
                 "generateShortUrl method should throw UrlShortenerException when number generator service returns zero"
         );
 
-        verify(numberGeneratorService, times(1)).generateNumber();
+        verify(numberGeneratorService, times(1)).generateNextNumber();
         verify(encoderService, times(0)).encode(number);
         verify(databaseService, times(0)).saveUrlMetadata(ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
@@ -123,7 +122,7 @@ final class DefaultUrlServiceTest {
         final var userId = "4b34ed1400fd06ef21f";
         final var originalUrl = "https://www.google.com";
 
-        when(numberGeneratorService.generateNumber()).thenReturn(number);
+        when(numberGeneratorService.generateNextNumber()).thenReturn(number);
         when(httpRequest.getAttribute("requestId")).thenReturn(requestId);
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
@@ -135,7 +134,7 @@ final class DefaultUrlServiceTest {
                 "generateShortUrl method should throw UrlShortenerException when number generator service returns negative number"
         );
 
-        verify(numberGeneratorService, times(1)).generateNumber();
+        verify(numberGeneratorService, times(1)).generateNextNumber();
         verify(encoderService, times(0)).encode(number);
         verify(databaseService, times(0)).saveUrlMetadata(ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
@@ -151,7 +150,7 @@ final class DefaultUrlServiceTest {
         final var userId = "4b34ed1400fd06ef21f";
         final var originalUrl = "https://www.google.com";
 
-        when(numberGeneratorService.generateNumber()).thenReturn(number);
+        when(numberGeneratorService.generateNextNumber()).thenReturn(number);
         when(encoderService.encode(number)).thenReturn(shortUrl);
         when(databaseService.saveUrlMetadata(ArgumentMatchers.any())).thenReturn(false);
         when(httpRequest.getAttribute("requestId")).thenReturn(requestId);
@@ -165,7 +164,7 @@ final class DefaultUrlServiceTest {
                 "generateShortUrl method should throw UrlShortenerException when database save failed"
         );
 
-        verify(numberGeneratorService, times(1)).generateNumber();
+        verify(numberGeneratorService, times(1)).generateNextNumber();
         verify(encoderService, times(1)).encode(number);
         verify(databaseService, times(1)).saveUrlMetadata(ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);

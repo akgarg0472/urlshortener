@@ -1,8 +1,8 @@
 package com.akgarg.urlshortener.configs;
 
-import com.akgarg.urlshortener.db.DatabaseService;
-import com.akgarg.urlshortener.db.InMemoryDatabaseService;
-import com.akgarg.urlshortener.db.MySQLDatabaseService;
+import com.akgarg.urlshortener.url.v1.db.DatabaseService;
+import com.akgarg.urlshortener.url.v1.db.InMemoryDatabaseService;
+import com.akgarg.urlshortener.url.v1.db.MySQLDatabaseService;
 import com.akgarg.urlshortener.statistics.KafkaStatisticsService;
 import com.akgarg.urlshortener.statistics.StatisticsService;
 import com.akgarg.urlshortener.statistics.VoidStatisticsService;

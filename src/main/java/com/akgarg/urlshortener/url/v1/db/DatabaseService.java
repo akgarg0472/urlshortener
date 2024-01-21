@@ -1,6 +1,6 @@
-package com.akgarg.urlshortener.db;
+package com.akgarg.urlshortener.url.v1.db;
 
-import com.akgarg.urlshortener.url.UrlMetadata;
+import com.akgarg.urlshortener.url.v1.UrlMetadata;
 
 import java.util.Optional;
 

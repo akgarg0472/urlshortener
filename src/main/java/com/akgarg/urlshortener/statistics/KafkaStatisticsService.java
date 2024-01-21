@@ -1,7 +1,8 @@
 package com.akgarg.urlshortener.statistics;
 
-import com.akgarg.urlshortener.utils.UrlLogger;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 
@@ -9,7 +10,7 @@ import java.util.Optional;
 
 public class KafkaStatisticsService implements StatisticsService {
 
-    private static final UrlLogger LOGGER = UrlLogger.getLogger(KafkaStatisticsService.class);
+    private static final Logger LOGGER = LogManager.getLogger(KafkaStatisticsService.class);
 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
@@ -25,10 +26,8 @@ public class KafkaStatisticsService implements StatisticsService {
     @Override
     public void publishEvent(final StatisticsEvent statisticsEvent) {
         serializeEvent(statisticsEvent)
-                .ifPresent(eventJson -> {
-                    kafkaTemplate.send(statisticsTopicName, eventJson)
-                            .whenComplete((s1, s2) -> System.out.println(s1 + " : " + s2));
-                });
+                .ifPresent(eventJson -> kafkaTemplate.send(statisticsTopicName, eventJson)
+                        .whenComplete((s1, s2) -> System.out.println(s1 + " : " + s2)));
     }
 
     private Optional<String> serializeEvent(final StatisticsEvent statisticsEvent) {

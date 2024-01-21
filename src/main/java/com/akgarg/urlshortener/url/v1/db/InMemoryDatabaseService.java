@@ -1,7 +1,8 @@
-package com.akgarg.urlshortener.db;
+package com.akgarg.urlshortener.url.v1.db;
 
-import com.akgarg.urlshortener.url.UrlMetadata;
-import com.akgarg.urlshortener.utils.UrlLogger;
+import com.akgarg.urlshortener.url.v1.UrlMetadata;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Map;
 import java.util.Optional;
@@ -9,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class InMemoryDatabaseService implements DatabaseService {
 
-    private static final UrlLogger LOGGER = UrlLogger.getLogger(InMemoryDatabaseService.class);
+    private static final Logger LOGGER = LogManager.getLogger(InMemoryDatabaseService.class);
 
     private final Map<String, UrlMetadata> db;
 

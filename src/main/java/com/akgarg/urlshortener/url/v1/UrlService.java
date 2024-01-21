@@ -1,6 +1,5 @@
-package com.akgarg.urlshortener.url;
+package com.akgarg.urlshortener.url.v1;
 
-import com.akgarg.urlshortener.db.DatabaseService;
 import com.akgarg.urlshortener.encoding.EncoderService;
 import com.akgarg.urlshortener.exception.UrlShortenerException;
 import com.akgarg.urlshortener.numbergenerator.NumberGeneratorService;
@@ -9,9 +8,11 @@ import com.akgarg.urlshortener.response.GenerateUrlResponse;
 import com.akgarg.urlshortener.statistics.EventType;
 import com.akgarg.urlshortener.statistics.StatisticsEvent;
 import com.akgarg.urlshortener.statistics.StatisticsService;
-import com.akgarg.urlshortener.utils.UrlLogger;
+import com.akgarg.urlshortener.url.v1.db.DatabaseService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -20,17 +21,17 @@ import java.net.URI;
 import static com.akgarg.urlshortener.utils.UrlShortenerUtility.extractRequestIdFromRequest;
 
 @Service
-public class DefaultUrlService implements UrlService {
+public class UrlService {
 
-    private static final UrlLogger LOGGER = UrlLogger.getLogger(DefaultUrlService.class);
+    private static final Logger LOGGER = LogManager.getLogger(UrlService.class);
 
     private final EncoderService encoderService;
     private final DatabaseService databaseService;
     private final StatisticsService statisticsService;
     private final NumberGeneratorService numberGeneratorService;
     private final String domain;
-
-    public DefaultUrlService(
+    
+    public UrlService(
             final EncoderService encoderService,
             final DatabaseService databaseService,
             final StatisticsService statisticsService,
@@ -44,7 +45,6 @@ public class DefaultUrlService implements UrlService {
         this.domain = domain;
     }
 
-    @Override
     public GenerateUrlResponse generateShortUrl(
             final HttpServletRequest httpRequest,
             @Valid final ShortUrlRequest request
@@ -54,7 +54,7 @@ public class DefaultUrlService implements UrlService {
 
         LOGGER.info("[{}]: Received: {}", requestId, request);
 
-        final var shortUrlNumber = numberGeneratorService.generateNumber();
+        final var shortUrlNumber = numberGeneratorService.generateNextNumber();
         LOGGER.debug("[{}]: Number generated for '{}' is {}", requestId, request.originalUrl(), shortUrlNumber);
 
         if (shortUrlNumber <= 0) {
@@ -89,7 +89,6 @@ public class DefaultUrlService implements UrlService {
         );
     }
 
-    @Override
     public URI getOriginalUrl(final HttpServletRequest httpRequest, final String shortUrl) {
         final var requestId = extractRequestIdFromRequest(httpRequest);
         LOGGER.info("[{}]: Received request to get original url for {}", requestId, shortUrl);

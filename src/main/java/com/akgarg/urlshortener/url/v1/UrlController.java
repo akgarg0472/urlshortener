@@ -1,4 +1,4 @@
-package com.akgarg.urlshortener.url;
+package com.akgarg.urlshortener.url.v1;
 
 import com.akgarg.urlshortener.request.ShortUrlRequest;
 import com.akgarg.urlshortener.response.GenerateUrlResponse;
@@ -15,11 +15,11 @@ import java.util.Map;
 import static com.akgarg.urlshortener.utils.UrlShortenerUtility.checkValidationResultAndThrowExceptionOnFailedValidation;
 
 @RestController
-public class UrlControllerV1 {
+public class UrlController {
 
     private final UrlService urlService;
 
-    public UrlControllerV1(final UrlService urlService) {
+    public UrlController(final UrlService urlService) {
         this.urlService = urlService;
     }
 

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-import static com.akgarg.urlshortener.utils.UrlShortenerUtility.checkValidationResultAndThrowExceptionOnFailedValidation;
+import static com.akgarg.urlshortener.utils.UrlShortenerUtil.checkValidationResultAndThrowExceptionOnFailedValidation;
 
 @RestController
 public class UrlController {

@@ -9,9 +9,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Profile("dev")
 @Service
-public class LocalInMemoryNumberGenerator implements NumberGeneratorService {
+public class InMemoryNumberGeneratorService implements NumberGeneratorService {
 
-    private static final Logger LOGGER = LogManager.getLogger(LocalInMemoryNumberGenerator.class);
+    private static final Logger LOGGER = LogManager.getLogger(InMemoryNumberGeneratorService.class);
     private final AtomicLong counter = new AtomicLong(1_00_00_00_000L);
 
     @Override

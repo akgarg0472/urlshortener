@@ -1,15 +1,15 @@
 package com.akgarg.urlshortener.unit.numbergenerator;
 
-import com.akgarg.urlshortener.numbergenerator.LocalInMemoryNumberGenerator;
 import org.junit.jupiter.api.Test;
+import com.akgarg.urlshortener.numbergenerator.InMemoryNumberGeneratorService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-final class LocalInMemoryNumberGeneratorTest {
+final class InMemoryNumberGeneratorServiceTest {
 
     @Test
     void generateNumberMethod_ShouldReturn_ExpectedOutput() {
-        final var numberGeneratorService = new LocalInMemoryNumberGenerator();
+        final var numberGeneratorService = new InMemoryNumberGeneratorService();
         final var expectedOutputs = new long[]{
                 1_00_00_00_000L,
                 1_00_00_00_001L,

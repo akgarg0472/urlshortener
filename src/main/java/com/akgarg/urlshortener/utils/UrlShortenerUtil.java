@@ -5,9 +5,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.BindingResult;
 
-public final class UrlShortenerUtility {
+public final class UrlShortenerUtil {
 
-    private UrlShortenerUtility() {
+    private UrlShortenerUtil() {
         throw new IllegalStateException("Can't initialize utility class");
     }
 

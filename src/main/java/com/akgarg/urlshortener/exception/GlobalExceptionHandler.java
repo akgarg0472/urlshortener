@@ -25,7 +25,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(e.getErrorCode()).body(parseException(e));
     }
 
+    @ExceptionHandler(SubscriptionException.class)
+    public ResponseEntity<ApiErrorResponse> handleSubscriptionException(final SubscriptionException e) {
+        return ResponseEntity.status(e.getStatusCode()).body(parseException(e));
+    }
+
     @ExceptionHandler(Exception.class)
+    @SuppressWarnings("all")
     public ResponseEntity<ApiErrorResponse> handleGenericException(final Exception e) {
         final ApiErrorResponse errorResponse = switch (e) {
             case HttpRequestMethodNotSupportedException ex ->

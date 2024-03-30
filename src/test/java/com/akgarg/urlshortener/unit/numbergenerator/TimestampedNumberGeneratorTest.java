@@ -15,9 +15,10 @@ class TimestampedNumberGeneratorTest {
 
     @Test
     void testNumberGenerator_DefaultConstructor() {
-        final var generator = new TimestampedNumberGenerator();
-        assertNotNull(generator, "Number generator is null");
-        assertTrue(generator.getNodeId() > 0 && generator.getNodeId() < 1024, "Node ID is not in range [0-1024)");
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new TimestampedNumberGenerator(-1)
+        );
     }
 
     @Test
@@ -36,7 +37,7 @@ class TimestampedNumberGeneratorTest {
 
     @Test
     void testNumberGenerator() {
-        final var generator = new TimestampedNumberGenerator();
+        final var generator = new TimestampedNumberGenerator(10);
         final long generatedNumber = generator.generateNextNumber();
         assertTrue(generatedNumber > 0, "Generated number is less than 0");
         assertTrue(generatedNumber > CUSTOM_EPOCH, "Generated number is less than custom epoch");
@@ -44,7 +45,7 @@ class TimestampedNumberGeneratorTest {
 
     @Test
     void testNumberGenerator_LoadTest_SingleThread() {
-        final var generator = new TimestampedNumberGenerator();
+        final var generator = new TimestampedNumberGenerator(10);
         final long startTimestamp = System.currentTimeMillis();
 
         final var duration = 1000;
@@ -62,7 +63,7 @@ class TimestampedNumberGeneratorTest {
 
     @Test
     void testNumberGenerator_LoadTest_MultiPlatformThreaded() {
-        final var generator = new TimestampedNumberGenerator();
+        final var generator = new TimestampedNumberGenerator(10);
         final long startTimestamp = System.currentTimeMillis();
         final var duration = 5_000;
         final var threadPoolSize = 100;

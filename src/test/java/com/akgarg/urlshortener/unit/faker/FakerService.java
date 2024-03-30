@@ -2,7 +2,7 @@ package com.akgarg.urlshortener.unit.faker;
 
 import com.akgarg.urlshortener.statistics.EventType;
 import com.akgarg.urlshortener.statistics.StatisticsEvent;
-import com.akgarg.urlshortener.url.v1.UrlMetadata;
+import com.akgarg.urlshortener.url.v1.Url;
 import com.github.javafaker.Faker;
 
 import java.util.concurrent.TimeUnit;
@@ -35,13 +35,14 @@ public class FakerService {
         );
     }
 
-    public static UrlMetadata fakeUrlMetadata() {
-        return new UrlMetadata(
-                "O9Oz9L1",
-                "https://www.google.com",
-                "b34ed1400fd06ef21f",
-                System.currentTimeMillis()
-        );
+    public static Url fakeUrlMetadata() {
+        final var url = new Url();
+        url.setShortUrl("O9Oz9L1");
+        url.setOriginalUrl("https://www.google.com");
+        url.setUserId("b34ed1400fd06ef21f");
+        url.setCreatedAt(System.currentTimeMillis());
+        url.setIsCustomAlias(false);
+        return url;
     }
 
 }

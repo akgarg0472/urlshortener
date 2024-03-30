@@ -4,10 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Profile("prod")
+@Service
 public class KafkaStatisticsService implements StatisticsService {
 
     private static final Logger LOGGER = LogManager.getLogger(KafkaStatisticsService.class);
@@ -27,7 +31,7 @@ public class KafkaStatisticsService implements StatisticsService {
     public void publishEvent(final StatisticsEvent statisticsEvent) {
         serializeEvent(statisticsEvent)
                 .ifPresent(eventJson -> kafkaTemplate.send(statisticsTopicName, eventJson)
-                        .whenComplete((s1, s2) -> System.out.println(s1 + " : " + s2)));
+                        .whenComplete((s1, s2) -> LOGGER.info("{}  : {}", s1, s2)));
     }
 
     private Optional<String> serializeEvent(final StatisticsEvent statisticsEvent) {

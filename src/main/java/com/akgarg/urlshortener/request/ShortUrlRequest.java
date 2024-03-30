@@ -10,6 +10,10 @@ public record ShortUrlRequest(
         String userId,
 
         @JsonProperty("original_url")
-        @NotBlank(message = "original_url should be valid") String originalUrl
+        @NotBlank(message = "original_url should be valid") String originalUrl,
+
+        @JsonProperty("custom_alias")
+        String customAlias
+        
 ) {
 }

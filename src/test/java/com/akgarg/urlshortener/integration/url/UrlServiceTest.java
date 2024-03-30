@@ -1,5 +1,6 @@
 package com.akgarg.urlshortener.integration.url;
 
+import com.akgarg.urlshortener.customalias.v1.CustomAliasService;
 import com.akgarg.urlshortener.encoding.EncoderService;
 import com.akgarg.urlshortener.exception.UrlShortenerException;
 import com.akgarg.urlshortener.numbergenerator.NumberGeneratorService;
@@ -7,7 +8,7 @@ import com.akgarg.urlshortener.request.ShortUrlRequest;
 import com.akgarg.urlshortener.statistics.StatisticsService;
 import com.akgarg.urlshortener.unit.faker.FakerService;
 import com.akgarg.urlshortener.url.v1.UrlService;
-import com.akgarg.urlshortener.url.v1.db.DatabaseService;
+import com.akgarg.urlshortener.url.v1.db.UrlDatabaseService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,13 +32,15 @@ final class UrlServiceTest {
     @Mock
     private EncoderService encoderService;
     @Mock
-    private DatabaseService databaseService;
+    private UrlDatabaseService urlDatabaseService;
     @Mock
     private StatisticsService statisticsService;
     @Mock
     private NumberGeneratorService numberGeneratorService;
     @Mock
     private HttpServletRequest httpRequest;
+    @Mock
+    private CustomAliasService customAliasService;
 
     private AutoCloseable closeable;
     private UrlService urlService;
@@ -47,9 +50,10 @@ final class UrlServiceTest {
         closeable = MockitoAnnotations.openMocks(this);
         urlService = new UrlService(
                 encoderService,
-                databaseService,
+                urlDatabaseService,
                 statisticsService,
                 numberGeneratorService,
+                customAliasService,
                 domain
         );
     }
@@ -71,20 +75,20 @@ final class UrlServiceTest {
 
         when(numberGeneratorService.generateNextNumber()).thenReturn(number);
         when(encoderService.encode(number)).thenReturn(shortUrl);
-        when(databaseService.saveUrlMetadata(ArgumentMatchers.any())).thenReturn(true);
+        when(urlDatabaseService.saveUrl(ArgumentMatchers.any())).thenReturn(true);
         when(httpRequest.getAttribute("requestId")).thenReturn(System.nanoTime());
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
-        final var request = new ShortUrlRequest(userId, originalUrl);
+        final var request = new ShortUrlRequest(userId, originalUrl, null);
         final var generatedShorUrl = urlService.generateShortUrl(httpRequest, request);
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
         verify(encoderService, times(1)).encode(number);
-        verify(databaseService, times(1)).saveUrlMetadata(ArgumentMatchers.any());
+        verify(urlDatabaseService, times(1)).saveUrl(ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
 
-        assertEquals(expectedShortUrl, generatedShorUrl, "Short url should be same as expected short url");
+        assertEquals(expectedShortUrl, generatedShorUrl.shortUrl(), "Short url should be same as expected short url");
     }
 
     @Test
@@ -99,7 +103,7 @@ final class UrlServiceTest {
         when(httpRequest.getAttribute("requestId")).thenReturn(requestId);
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
-        final var request = new ShortUrlRequest(userId, originalUrl);
+        final var request = new ShortUrlRequest(userId, originalUrl, null);
 
         assertThrows(
                 UrlShortenerException.class,
@@ -109,7 +113,7 @@ final class UrlServiceTest {
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
         verify(encoderService, times(0)).encode(number);
-        verify(databaseService, times(0)).saveUrlMetadata(ArgumentMatchers.any());
+        verify(urlDatabaseService, times(0)).saveUrl(ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
     }
@@ -126,7 +130,7 @@ final class UrlServiceTest {
         when(httpRequest.getAttribute("requestId")).thenReturn(requestId);
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
-        final var request = new ShortUrlRequest(userId, originalUrl);
+        final var request = new ShortUrlRequest(userId, originalUrl, null);
 
         assertThrows(
                 UrlShortenerException.class,
@@ -136,7 +140,7 @@ final class UrlServiceTest {
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
         verify(encoderService, times(0)).encode(number);
-        verify(databaseService, times(0)).saveUrlMetadata(ArgumentMatchers.any());
+        verify(urlDatabaseService, times(0)).saveUrl(ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
     }
@@ -152,11 +156,11 @@ final class UrlServiceTest {
 
         when(numberGeneratorService.generateNextNumber()).thenReturn(number);
         when(encoderService.encode(number)).thenReturn(shortUrl);
-        when(databaseService.saveUrlMetadata(ArgumentMatchers.any())).thenReturn(false);
+        when(urlDatabaseService.saveUrl(ArgumentMatchers.any())).thenReturn(false);
         when(httpRequest.getAttribute("requestId")).thenReturn(requestId);
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
-        final var request = new ShortUrlRequest(userId, originalUrl);
+        final var request = new ShortUrlRequest(userId, originalUrl, null);
 
         assertThrows(
                 UrlShortenerException.class,
@@ -166,7 +170,7 @@ final class UrlServiceTest {
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
         verify(encoderService, times(1)).encode(number);
-        verify(databaseService, times(1)).saveUrlMetadata(ArgumentMatchers.any());
+        verify(urlDatabaseService, times(1)).saveUrl(ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
     }
@@ -175,10 +179,10 @@ final class UrlServiceTest {
     void getShortUrl_ShouldReturn_OriginalUrl() {
         final var urlMetadata = FakerService.fakeUrlMetadata();
         final var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64";
-        final var shortUrl = urlMetadata.shortUrl();
-        final var expectedOriginalUrl = URI.create(urlMetadata.originalUrl());
+        final var shortUrl = urlMetadata.getShortUrl();
+        final var expectedOriginalUrl = URI.create(urlMetadata.getOriginalUrl());
 
-        when(databaseService.getUrlMetadataByShortUrl(shortUrl)).thenReturn(Optional.of(urlMetadata));
+        when(urlDatabaseService.getUrlByShortUrl(shortUrl)).thenReturn(Optional.of(urlMetadata));
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
         final var originalUrlFromUrlService = urlService.getOriginalUrl(httpRequest, shortUrl);
@@ -189,7 +193,7 @@ final class UrlServiceTest {
                 "Original url should be same as expected original url"
         );
 
-        verify(databaseService, times(1)).getUrlMetadataByShortUrl(shortUrl);
+        verify(urlDatabaseService, times(1)).getUrlByShortUrl(shortUrl);
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
     }
@@ -199,7 +203,7 @@ final class UrlServiceTest {
         final var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64";
         final var shortUrl = "O9Oz9L1";
 
-        when(databaseService.getUrlMetadataByShortUrl(shortUrl)).thenReturn(Optional.empty());
+        when(urlDatabaseService.getUrlByShortUrl(shortUrl)).thenReturn(Optional.empty());
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
         assertThrowsExactly(
@@ -208,7 +212,7 @@ final class UrlServiceTest {
                 "getOriginalUrl method should throw UrlShortenerException when url metadata not found"
         );
 
-        verify(databaseService, times(1)).getUrlMetadataByShortUrl(shortUrl);
+        verify(urlDatabaseService, times(1)).getUrlByShortUrl(shortUrl);
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
     }

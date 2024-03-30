@@ -4,10 +4,7 @@ import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.net.NetworkInterface;
-import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.Iterator;
 
 public class TimestampedNumberGenerator implements NumberGeneratorService {
 
@@ -28,16 +25,13 @@ public class TimestampedNumberGenerator implements NumberGeneratorService {
     private long nodeIdSequenceBitResult = -1L;
 
     public TimestampedNumberGenerator(final int nodeId) {
+        LOGGER.info("Initializing with nodeId={}", nodeId);
+
         if (nodeId < 0 || nodeId > MAX_NODE_ID) {
             LOGGER.error("Node ID cannot be greater than {} or less than 0: {}", MAX_NODE_ID, nodeId);
             throw new IllegalArgumentException("Node ID cannot be greater than " + MAX_NODE_ID + " or less than 0");
         }
         this.nodeId = nodeId;
-        setNodeIdSequenceBitResult();
-    }
-
-    public TimestampedNumberGenerator() {
-        nodeId = generateNodeId();
         setNodeIdSequenceBitResult();
     }
 
@@ -83,33 +77,6 @@ public class TimestampedNumberGenerator implements NumberGeneratorService {
         }
 
         return currentTimestamp;
-    }
-
-    private int generateNodeId() {
-        int generatedNodeId;
-
-        try {
-            final StringBuilder nodeIdStringBuilder = new StringBuilder();
-            final Iterator<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces().asIterator();
-
-            while (networkInterfaces.hasNext()) {
-                final NetworkInterface networkInterface = networkInterfaces.next();
-                final byte[] hardwareAddress = networkInterface.getHardwareAddress();
-
-                if (hardwareAddress != null) {
-                    for (byte hardwareAddressByte : hardwareAddress) {
-                        nodeIdStringBuilder.append(String.format("%03X", hardwareAddressByte));
-                    }
-                }
-            }
-
-            generatedNodeId = nodeIdStringBuilder.toString().hashCode();
-        } catch (Exception e) {
-            LOGGER.error("Error occurred while generating node ID: {}", e.getMessage());
-            generatedNodeId = new SecureRandom().nextInt(MAX_NODE_ID + 1);
-        }
-
-        return generatedNodeId & MAX_NODE_ID;
     }
 
 }

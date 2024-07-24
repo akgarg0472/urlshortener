@@ -24,7 +24,7 @@ public class RequestIdGenerator extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private Object generateRequestId() {
+    private String generateRequestId() {
         return UUID.randomUUID().toString().replace("-", "");
     }
 

@@ -19,7 +19,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
-import java.util.Optional;
 
 import static com.akgarg.urlshortener.utils.UrlShortenerUtil.extractRequestIdFromRequest;
 
@@ -52,25 +51,24 @@ public class UrlService {
     }
 
     public GenerateUrlResponse generateShortUrl(
-            final HttpServletRequest httpRequest,
-            @Valid final ShortUrlRequest request
+            final HttpServletRequest httpRequest, @Valid final ShortUrlRequest request
     ) {
         final var requestId = extractRequestIdFromRequest(httpRequest);
-        final var startTime = System.currentTimeMillis();
+        final long startTime = System.currentTimeMillis();
 
         LOGGER.info("[{}]: Received: {}", requestId, request);
 
         final boolean customAlias = request.customAlias() != null && !request.customAlias().isBlank();
 
         if (customAlias) {
-            final boolean validate = customAliasService.validate(requestId, request);
+            final var validate = customAliasService.validate(requestId, request);
 
             if (!validate) {
                 LOGGER.error("{} failed to validate custom URL alias", requestId);
                 handleCustomAliasValidationFailed(httpRequest, request, startTime);
             }
 
-            final Optional<Url> shortUrlExists = urlDatabaseService.getUrlByShortUrl(request.customAlias());
+            final var shortUrlExists = urlDatabaseService.getUrlByShortUrl(request.customAlias());
 
             if (shortUrlExists.isPresent()) {
                 LOGGER.error("{} custom alias '{}' is already taken", requestId, request.customAlias());
@@ -108,15 +106,11 @@ public class UrlService {
 
         LOGGER.info("[{}]: Url shorten successfully: {}", requestId, url);
 
-        final String shortUrlWithDomain = domain + url.getShortUrl();
+        final var shortUrlWithDomain = domain + url.getShortUrl();
 
         LOGGER.info("[{}]: Short URL for {} is {}", requestId, request.originalUrl(), shortUrl);
 
-        return new GenerateUrlResponse(
-                shortUrlWithDomain,
-                request.originalUrl(),
-                201
-        );
+        return new GenerateUrlResponse(shortUrlWithDomain, request.originalUrl(), 201);
     }
 
     private String getShortUrl(
@@ -141,41 +135,19 @@ public class UrlService {
     }
 
     private void handleCustomAliasValidationFailed(
-            final HttpServletRequest httpRequest,
-            final ShortUrlRequest request,
-            final long startTime
+            final HttpServletRequest httpRequest, final ShortUrlRequest request, final long startTime
     ) {
-        generateStatisticsEvent(
-                httpRequest,
-                Url.fromShortUrl(request.originalUrl()),
-                EventType.URL_CREATE_FAILED,
-                startTime
-        );
+        generateStatisticsEvent(httpRequest, Url.fromShortUrl(request.originalUrl()), EventType.URL_CREATE_FAILED, startTime);
 
-        throw new UrlShortenerException(
-                new String[]{"CUSTOM_ALIAS_LIMIT_EXCEEDED"},
-                HttpStatus.FORBIDDEN.value(),
-                "You have exceeded the custom alias limit as per your subscription plan"
-        );
+        throw new UrlShortenerException(new String[]{"CUSTOM_ALIAS_LIMIT_EXCEEDED"}, HttpStatus.FORBIDDEN.value(), "You have exceeded the custom alias limit as per your subscription plan");
     }
 
     private void handleShortUrlExistsAndThrowException(
-            final HttpServletRequest httpRequest,
-            final ShortUrlRequest request,
-            final long startTime
+            final HttpServletRequest httpRequest, final ShortUrlRequest request, final long startTime
     ) {
-        generateStatisticsEvent(
-                httpRequest,
-                Url.fromShortUrl(request.originalUrl()),
-                EventType.URL_CREATE_FAILED,
-                startTime
-        );
+        generateStatisticsEvent(httpRequest, Url.fromShortUrl(request.originalUrl()), EventType.URL_CREATE_FAILED, startTime);
 
-        throw new UrlShortenerException(
-                new String[]{"CUSTOM_ALIAS_EXISTS"},
-                HttpStatus.CONFLICT.value(),
-                "Custom url alias is already taken"
-        );
+        throw new UrlShortenerException(new String[]{"CUSTOM_ALIAS_EXISTS"}, HttpStatus.CONFLICT.value(), "Custom url alias is already taken");
     }
 
     public URI getOriginalUrl(final HttpServletRequest httpRequest, final String shortUrl) {
@@ -205,18 +177,9 @@ public class UrlService {
     private void handleShorteningFailureAndThrowException(
             final HttpServletRequest httpRequest, final ShortUrlRequest request, final long startTime
     ) {
-        generateStatisticsEvent(
-                httpRequest,
-                Url.fromShortUrl(request.originalUrl()),
-                EventType.URL_CREATE_FAILED,
-                startTime
-        );
+        generateStatisticsEvent(httpRequest, Url.fromShortUrl(request.originalUrl()), EventType.URL_CREATE_FAILED, startTime);
 
-        throw new UrlShortenerException(
-                new String[]{"Error shortening url: " + request.originalUrl()},
-                500,
-                "Internal Server Error"
-        );
+        throw new UrlShortenerException(new String[]{"Error shortening url: " + request.originalUrl()}, 500, "Internal Server Error");
     }
 
     private void handleUrlFindFailureAndThrowException(
@@ -229,21 +192,15 @@ public class UrlService {
                 startTime
         );
 
-        throw new UrlShortenerException(
-                new String[]{shortUrl + " not found"},
-                404,
-                "Requested URL not found"
-        );
+        throw new UrlShortenerException(new String[]{shortUrl + " not found"}, 404, "Requested URL not found");
     }
 
     private void generateStatisticsEvent(
-            final HttpServletRequest httpRequest,
-            final Url url,
-            final EventType eventType,
-            final long startTime
+            final HttpServletRequest httpRequest, final Url url, final EventType eventType, final long startTime
     ) {
         final var eventDuration = System.currentTimeMillis() - startTime;
         final var requestId = extractRequestIdFromRequest(httpRequest);
+        final var clientIp = extractClientIpFromRequest(httpRequest);
 
         final var statisticsEvent = new StatisticsEvent(
                 requestId,
@@ -251,13 +208,27 @@ public class UrlService {
                 url.getShortUrl(),
                 url.getOriginalUrl(),
                 url.getUserId(),
-                httpRequest.getRemoteAddr(),
+                clientIp,
                 httpRequest.getHeader("USER-AGENT"),
                 url.getCreatedAt(),
                 eventDuration
         );
 
         statisticsService.publishEvent(statisticsEvent);
+    }
+
+    private String extractClientIpFromRequest(final HttpServletRequest httpRequest) {
+        final var xForwardedFor = httpRequest.getHeader("X-Forwarded-For");
+
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            final var ips = xForwardedFor.split(",");
+
+            if (ips.length > 0) {
+                return ips[0].trim();
+            }
+        }
+
+        return httpRequest.getRemoteAddr();
     }
 
 }

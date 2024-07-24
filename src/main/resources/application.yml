@@ -1,12 +1,12 @@
 url:
   shortener:
-    domain: http://localhost:8765/
+    domain: http://127.0.0.1:8765/
 
 spring:
   application:
     name: urlshortener-service
   profiles:
-    active: dev
+    active: prod
   jackson:
     default-property-inclusion: non_null
 

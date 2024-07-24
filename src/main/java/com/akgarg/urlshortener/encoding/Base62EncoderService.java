@@ -26,7 +26,7 @@ public class Base62EncoderService implements EncoderService {
 
         while (decimal > 0) {
             final var remainder = (int) (decimal % 62);
-            LOGGER.trace(decimal + " % " + 62 + " = " + remainder);
+            LOGGER.trace("{} % 62 = {}", decimal, remainder);
             base62Representation.append(base62Mapping[remainder]);
             decimal /= 62;
         }

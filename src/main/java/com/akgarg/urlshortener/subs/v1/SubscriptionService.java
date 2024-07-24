@@ -30,7 +30,7 @@ public class SubscriptionService {
 
     public Optional<String> getCustomAlias(final Object requestId, final String userId) {
         try {
-            final ResponseEntity<GetSubscriptionResponse> response = restClientBuilder.build()
+            final var subscriptionResponse = restClientBuilder.build()
                     .get()
                     .uri(uriBuilder -> uriBuilder
                             .scheme("http")
@@ -41,7 +41,7 @@ public class SubscriptionService {
                     .retrieve()
                     .toEntity(GetSubscriptionResponse.class);
 
-            final GetSubscriptionResponse responseBody = response.getBody();
+            final var responseBody = subscriptionResponse.getBody();
 
             if (responseBody == null) {
                 LOGGER.error("{} no response received from subs service", requestId);
@@ -52,7 +52,7 @@ public class SubscriptionService {
                 );
             }
 
-            final List<PlanPrivilegeDto> privileges = responseBody
+            final var privileges = responseBody
                     .subscription()
                     .privileges();
 
@@ -62,7 +62,7 @@ public class SubscriptionService {
                     privileges.stream().map(PlanPrivilegeDto::name).toList()
             );
 
-            final Optional<PlanPrivilegeDto> customAliasPrivilege = privileges
+            final var customAliasPrivilege = privileges
                     .stream()
                     .filter(this::isCustomAliasPrivilege)
                     .findFirst();
@@ -137,7 +137,7 @@ public class SubscriptionService {
     }
 
     private PrivilegeEnums.CustomAliasDuration getCustomAliasDuration(final String privilege) {
-        final String duration = privilege.substring(
+        final var duration = privilege.substring(
                 PrivilegeEnums.PrivilegePrefix.CUSTOM_ALIAS.name().length() + 1,
                 privilege.lastIndexOf('_')
         );

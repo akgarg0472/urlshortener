@@ -26,3 +26,7 @@ kafka:
 
 server:
   port: 9090
+
+url:
+  shortener:
+    domain: https://90af-2401-4900-1c30-4591-651b-801c-b32b-d0fc.ngrok-free.app/

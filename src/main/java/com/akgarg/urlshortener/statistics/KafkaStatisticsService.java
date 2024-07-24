@@ -1,6 +1,7 @@
 package com.akgarg.urlshortener.statistics;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +13,7 @@ import java.util.Optional;
 
 @Profile("prod")
 @Service
+@RequiredArgsConstructor
 public class KafkaStatisticsService implements StatisticsService {
 
     private static final Logger LOGGER = LogManager.getLogger(KafkaStatisticsService.class);
@@ -22,16 +24,10 @@ public class KafkaStatisticsService implements StatisticsService {
     @Value(value = "${kafka.statistics.topic.name}")
     private String statisticsTopicName;
 
-    public KafkaStatisticsService(final KafkaTemplate<String, String> kafkaTemplate) {
-        this.kafkaTemplate = kafkaTemplate;
-        this.objectMapper = new ObjectMapper();
-    }
-
     @Override
     public void publishEvent(final StatisticsEvent statisticsEvent) {
         serializeEvent(statisticsEvent)
-                .ifPresent(eventJson -> kafkaTemplate.send(statisticsTopicName, eventJson)
-                        .whenComplete((s1, s2) -> LOGGER.info("{}  : {}", s1, s2)));
+                .ifPresent(eventJson -> kafkaTemplate.send(statisticsTopicName, eventJson));
     }
 
     private Optional<String> serializeEvent(final StatisticsEvent statisticsEvent) {

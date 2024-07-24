@@ -16,12 +16,11 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 @Configuration
 @Profile("prod")
-public class BeansConfig {
+public class KafkaConfigs {
 
     @Value(value = "${spring.kafka.bootstrap-servers}")
     private String bootstrapAddress;
@@ -42,7 +41,7 @@ public class BeansConfig {
 
     @Bean
     public ProducerFactory<String, String> kafkaProducerFactory() {
-        final Map<String, Object> configProps = new HashMap<>();
+        final var configProps = new HashMap<String, Object>();
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -56,7 +55,7 @@ public class BeansConfig {
 
     @Bean
     public NumberGeneratorService numberGeneratorService(final Environment environment) {
-        final String nodeId = Objects.requireNonNull(
+        final var nodeId = Objects.requireNonNull(
                 environment.getProperty("process.node.id"),
                 "Please provide 'process.node.id' property value"
         );

@@ -1,14 +1,14 @@
 package com.akgarg.urlshortener.numbergenerator;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.time.Instant;
 
+@Slf4j
 public class TimestampedNumberGenerator implements NumberGeneratorService {
-
-    private static final Logger LOGGER = LogManager.getLogger(TimestampedNumberGenerator.class);
 
     private static final int NODE_ID_BITS = 10; // node id or machine id bits (2 ^ 10 = 1024)
     private static final int SEQUENCE_BITS = 12; // local counter bits (2 ^ 12 = 4096)
@@ -25,12 +25,13 @@ public class TimestampedNumberGenerator implements NumberGeneratorService {
     private long nodeIdSequenceBitResult = -1L;
 
     public TimestampedNumberGenerator(final int nodeId) {
-        LOGGER.info("Initializing with nodeId={}", nodeId);
+        log.info("Initializing with nodeId={}", nodeId);
 
         if (nodeId < 0 || nodeId > MAX_NODE_ID) {
-            LOGGER.error("Node ID cannot be greater than {} or less than 0: {}", MAX_NODE_ID, nodeId);
+            log.error("Node ID cannot be greater than {} or less than 0: {}", MAX_NODE_ID, nodeId);
             throw new IllegalArgumentException("Node ID cannot be greater than " + MAX_NODE_ID + " or less than 0");
         }
+
         this.nodeId = nodeId;
         setNodeIdSequenceBitResult();
     }
@@ -45,7 +46,7 @@ public class TimestampedNumberGenerator implements NumberGeneratorService {
 
     @Override
     public synchronized long generateNextNumber() {
-        long currentTimestamp = timestamp();
+        var currentTimestamp = timestamp();
 
         if (currentTimestamp < previousTimestamp) {
             throw new IllegalStateException("Invalid System Clock! Current timestamp: %d and previous timestamp: %d".formatted(currentTimestamp, previousTimestamp));
@@ -63,7 +64,7 @@ public class TimestampedNumberGenerator implements NumberGeneratorService {
 
         previousTimestamp = currentTimestamp;
 
-        long id = currentTimestamp << (NODE_ID_BITS + SEQUENCE_BITS);
+        var id = currentTimestamp << (NODE_ID_BITS + SEQUENCE_BITS);
         id |= nodeIdSequenceBitResult;
         id |= currentSequence;
 

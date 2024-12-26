@@ -1,6 +1,7 @@
 package com.akgarg.urlshortener.url.v1.db;
 
 import com.akgarg.urlshortener.url.v1.Url;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.Profile;
@@ -12,9 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Profile("dev")
 @Service
+@Slf4j
 public class InMemoryUrlDatabaseService implements UrlDatabaseService {
-
-    private static final Logger LOGGER = LogManager.getLogger(InMemoryUrlDatabaseService.class);
 
     private final Map<String, Url> db;
 
@@ -24,17 +24,17 @@ public class InMemoryUrlDatabaseService implements UrlDatabaseService {
 
     @Override
     public boolean saveUrl(final Url url) {
-        LOGGER.info("Going to save {} in DB", url);
+        log.info("Going to save {} in DB", url);
         db.put(url.getShortUrl(), url);
-        LOGGER.debug("{} saved in db successfully", url);
+        log.debug("{} saved in db successfully", url);
         return true;
     }
 
     @Override
     public Optional<Url> getUrlByShortUrl(final String shortUrl) {
-        LOGGER.info("Fetching url metadata for {}", shortUrl);
+        log.info("Fetching url metadata for {}", shortUrl);
         final var urlMetadata = db.get(shortUrl);
-        LOGGER.trace("Metadata fetched for {}: {}", shortUrl, urlMetadata);
+        log.trace("Metadata fetched for {}: {}", shortUrl, urlMetadata);
         return Optional.ofNullable(urlMetadata);
     }
 

@@ -2,6 +2,7 @@ package com.akgarg.urlshortener.statistics;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,9 +15,8 @@ import java.util.Optional;
 @Profile("prod")
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class KafkaStatisticsService implements StatisticsService {
-
-    private static final Logger LOGGER = LogManager.getLogger(KafkaStatisticsService.class);
 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
@@ -34,7 +34,7 @@ public class KafkaStatisticsService implements StatisticsService {
         try {
             return Optional.of(objectMapper.writeValueAsString(statisticsEvent));
         } catch (Exception e) {
-            LOGGER.error("Error occurred while serializing statistics event: {}", e.getMessage());
+            log.error("Error occurred while serializing statistics event: {}", e.getMessage());
             return Optional.empty();
         }
     }

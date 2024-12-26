@@ -5,6 +5,7 @@ import com.akgarg.urlshortener.request.ShortUrlRequest;
 import com.akgarg.urlshortener.subs.v1.SubscriptionService;
 import com.akgarg.urlshortener.url.v1.Url;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -13,26 +14,25 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CustomAliasService {
-
-    private static final Logger LOGGER = LogManager.getLogger(CustomAliasService.class);
 
     private final CustomAliasDatabaseService customAliasDatabaseService;
     private final SubscriptionService subscriptionService;
 
     public boolean validate(final Object requestId, final ShortUrlRequest request) {
-        final Optional<String> customAlias = subscriptionService.getCustomAlias(requestId, request.userId());
+        final var customAlias = subscriptionService.getCustomAlias(requestId, request.userId());
 
         if (customAlias.isEmpty()) {
-            LOGGER.info("{} subscription or custom alias not found for user", requestId);
+            log.info("{} subscription or custom alias not found for user", requestId);
             return false;
         }
 
-        final long customAliasThreshold = subscriptionService.extractCustomAliasThreshold(requestId, customAlias.get());
-        final long customAliasSinceTimestamp = subscriptionService.getCustomAliasSinceTimestamp(customAlias.get());
-        final long consumedCustomAlias = getConsumedCustomAlias(request.userId(), customAliasSinceTimestamp);
+        final var customAliasThreshold = subscriptionService.extractCustomAliasThreshold(requestId, customAlias.get());
+        final var customAliasSinceTimestamp = subscriptionService.getCustomAliasSinceTimestamp(customAlias.get());
+        final var consumedCustomAlias = getConsumedCustomAlias(request.userId(), customAliasSinceTimestamp);
 
-        LOGGER.info("{} allowed custom alias: {}, consumed custom alias: {}", requestId, customAliasThreshold, consumedCustomAlias);
+        log.info("{} allowed custom alias: {}, consumed custom alias: {}", requestId, customAliasThreshold, consumedCustomAlias);
 
         return customAliasThreshold > consumedCustomAlias;
     }
@@ -46,8 +46,8 @@ public class CustomAliasService {
         customAlias.setAlias(url.getShortUrl());
         customAlias.setUserId(url.getUserId());
         customAlias.setCreatedAt(System.currentTimeMillis());
-        final boolean customAliasSaveResult = customAliasDatabaseService.addCustomAlias(customAlias);
-        LOGGER.info("{} custom alias save result: {}", requestId, customAliasSaveResult);
+        final var customAliasSaveResult = customAliasDatabaseService.addCustomAlias(customAlias);
+        log.info("{} custom alias save result: {}", requestId, customAliasSaveResult);
     }
 
 }

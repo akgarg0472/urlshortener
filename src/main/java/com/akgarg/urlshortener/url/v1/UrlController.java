@@ -26,8 +26,8 @@ public class UrlController {
     @GetMapping("/api/v1/ping")
     public Map<String, String> heartbeat(final HttpServletRequest httpRequest) {
         return Map.of("message", "PONG!!",
-                      "time", LocalDateTime.now().toString(),
-                      "clientIp", httpRequest.getRemoteAddr()
+                "time", LocalDateTime.now().toString(),
+                "clientIp", httpRequest.getRemoteAddr()
         );
     }
 
@@ -38,7 +38,6 @@ public class UrlController {
             final BindingResult validationResult
     ) {
         checkValidationResultAndThrowExceptionOnFailedValidation(validationResult);
-
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(urlService.generateShortUrl(httpRequest, request));
     }

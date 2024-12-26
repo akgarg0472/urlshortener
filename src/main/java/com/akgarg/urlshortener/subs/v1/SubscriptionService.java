@@ -2,6 +2,7 @@ package com.akgarg.urlshortener.subs.v1;
 
 import com.akgarg.urlshortener.exception.SubscriptionException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatusCode;
@@ -21,11 +22,10 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SubscriptionService {
 
-    private static final Logger LOGGER = LogManager.getLogger(SubscriptionService.class);
     private static final ZoneId UTC_ZONE_ID = ZoneId.of("UTC");
-
     private final RestClient.Builder restClientBuilder;
 
     public Optional<String> getCustomAlias(final Object requestId, final String userId) {
@@ -44,7 +44,7 @@ public class SubscriptionService {
             final var responseBody = subscriptionResponse.getBody();
 
             if (responseBody == null) {
-                LOGGER.error("{} no response received from subs service", requestId);
+                log.error("{} no response received from subs service", requestId);
 
                 throw new SubscriptionException(
                         HttpStatusCode.valueOf(500),
@@ -56,7 +56,7 @@ public class SubscriptionService {
                     .subscription()
                     .privileges();
 
-            LOGGER.debug(
+            log.debug(
                     "{} subscription privileges: {}",
                     requestId,
                     privileges.stream().map(PlanPrivilegeDto::name).toList()
@@ -67,14 +67,14 @@ public class SubscriptionService {
                     .filter(this::isCustomAliasPrivilege)
                     .findFirst();
 
-            LOGGER.info("{} custom alias for user subscription: {}", requestId, customAliasPrivilege.orElse(null));
+            log.info("{} custom alias for user subscription: {}", requestId, customAliasPrivilege.orElse(null));
 
             return customAliasPrivilege.map(PlanPrivilegeDto::name);
         } catch (Exception e) {
             if (e instanceof HttpClientErrorException clientErrorException) {
-                LOGGER.error("{} error checking for subscription -> {}", requestId, clientErrorException.getMessage());
+                log.error("{} error checking for subscription -> {}", requestId, clientErrorException.getMessage());
 
-                @SuppressWarnings("unchecked") final Map<String, Object> responseBody = clientErrorException.getResponseBodyAs(Map.class);
+                final var responseBody = clientErrorException.getResponseBodyAs(Map.class);
 
                 final String message;
 
@@ -90,7 +90,7 @@ public class SubscriptionService {
                 );
             }
 
-            LOGGER.error("{} {} communicating with subscription service: {}", requestId, e.getClass().getSimpleName(), e.getMessage());
+            log.error("{} {} communicating with subscription service: {}", requestId, e.getClass().getSimpleName(), e.getMessage());
 
             throw e;
         }
@@ -107,13 +107,13 @@ public class SubscriptionService {
         try {
             return Long.parseLong(customAlias.substring(customAlias.lastIndexOf('_') + 1));
         } catch (Exception e) {
-            LOGGER.error("{} error extracting allowed custom alias", requestId, e);
+            log.error("{} error extracting allowed custom alias", requestId, e);
             return 0;
         }
     }
 
     public long getCustomAliasSinceTimestamp(final String customAlias) {
-        final PrivilegeEnums.CustomAliasDuration duration = getCustomAliasDuration(customAlias);
+        final var duration = getCustomAliasDuration(customAlias);
 
         return switch (duration) {
             case DAILY -> LocalDate.now()

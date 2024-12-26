@@ -17,7 +17,7 @@ public class InMemoryCustomAliasDatabaseService implements CustomAliasDatabaseSe
 
     @Override
     public boolean addCustomAlias(final CustomAlias customAlias) {
-        final List<CustomAlias> userAlias = db.getOrDefault(customAlias.getUserId(), new ArrayList<>());
+        final var userAlias = db.getOrDefault(customAlias.getUserId(), new ArrayList<>());
         userAlias.add(customAlias);
         db.put(customAlias.getUserId(), userAlias);
         return true;
@@ -25,7 +25,7 @@ public class InMemoryCustomAliasDatabaseService implements CustomAliasDatabaseSe
 
     @Override
     public long getConsumedCustomAliasForUserIdSince(final String userId, final long timestampSince) {
-        final List<CustomAlias> userAlias = db.getOrDefault(userId, new ArrayList<>());
+        final var userAlias = db.getOrDefault(userId, new ArrayList<>());
         return userAlias
                 .stream()
                 .filter(alias -> alias.getCreatedAt() >= timestampSince)

@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
 
 final class UrlServiceTest {
 
-    private static final String domain = "http://localhost:8080/";
+    private static final String DOMAIN = "http://localhost:8080/";
     private static final String ATTRIBUTE_REQUEST_ID = "requestId";
     private static final String HEADER_USER_AGENT = "USER-AGENT";
 
@@ -54,7 +54,7 @@ final class UrlServiceTest {
                 statisticsService,
                 numberGeneratorService,
                 customAliasService,
-                domain
+                DOMAIN
         );
     }
 
@@ -71,7 +71,7 @@ final class UrlServiceTest {
         final var userId = "4b34ed1400fd06ef21f";
         final var originalUrl = "https://www.google.com";
         final var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64";
-        final var expectedShortUrl = domain + shortUrl;
+        final var expectedShortUrl = DOMAIN + shortUrl;
 
         when(numberGeneratorService.generateNextNumber()).thenReturn(number);
         when(encoderService.encode(number)).thenReturn(shortUrl);

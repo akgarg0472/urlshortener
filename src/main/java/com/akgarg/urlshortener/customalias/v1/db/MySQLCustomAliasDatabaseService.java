@@ -22,7 +22,7 @@ public class MySQLCustomAliasDatabaseService implements CustomAliasDatabaseServi
             customAliasRepository.save(customAlias);
             return true;
         } catch (Exception e) {
-            LOGGER.error("");
+            LOGGER.error("Error adding/updating custom alias", e);
             return false;
         }
     }

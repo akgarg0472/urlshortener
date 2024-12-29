@@ -70,9 +70,6 @@ environments. The updated configuration includes the following:
 
 ---
 
-These settings configure core aspects of the URL shortener service, including the URL base, service discovery, and the
-management endpoints for health checks and monitoring with Prometheus.
-
 ### 2. `application-dev.yml`
 
 This configuration is used for the development environment, where specific settings are adjusted to suit local
@@ -95,9 +92,6 @@ development needs. The key configurations in this file are:
           for local testing.
 
 ---
-
-These settings ensure that the application runs smoothly in the development environment by disabling unnecessary
-configurations like JPA autoconfiguration and specifying local server settings (port and address).
 
 ### 3. `application-prod.yml`
 
@@ -145,10 +139,6 @@ configurations in this file are:
           `8765`.
 
 ---
-
-These settings ensure that the application is properly connected to both Kafka and MongoDB, with the appropriate topic
-configuration for event streaming and database connection in the production environment. The server is set to run on
-port `9090`, with the URL shortener service accessible at `localhost:8765/`.
 
 ## Environment Configuration
 

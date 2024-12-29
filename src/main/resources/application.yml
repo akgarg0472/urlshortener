@@ -13,3 +13,12 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
     enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    prometheus:
+      access: read_only

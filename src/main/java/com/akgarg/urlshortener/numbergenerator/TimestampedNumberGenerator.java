@@ -2,8 +2,6 @@ package com.akgarg.urlshortener.numbergenerator;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.time.Instant;
 

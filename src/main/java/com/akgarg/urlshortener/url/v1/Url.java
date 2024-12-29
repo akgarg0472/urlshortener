@@ -1,35 +1,36 @@
 package com.akgarg.urlshortener.url.v1;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
-@SuppressWarnings("JpaDataSourceORMInspection")
-@Entity
+@Document(collection = "urls")
 @Getter
 @Setter
 @ToString
-@Table(name = "urls")
 public final class Url {
 
     @Id
-    @Column(name = "short_url")
+    @Field(name = "short_url")
     private String shortUrl;
 
-    @Column(name = "original_url", nullable = false)
+    @Field(name = "original_url")
+    @NotNull(message = "original_url can't be null")
     private String originalUrl;
 
-    @Column(name = "user_id", nullable = false)
+    @Field(name = "user_id")
+    @NotNull(message = "user_id can't be null")
     private String userId;
 
-    @Column(name = "created_at", nullable = false)
+    @Field(name = "created_at")
+    @NotNull(message = "created_at can't be null")
     private Long createdAt;
 
-    @Column(name = "is_custom_alias")
+    @Field(name = "is_custom_alias")
     private Boolean isCustomAlias;
 
     public static Url fromShortUrl(final String shortUrl) {

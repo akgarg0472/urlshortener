@@ -2,17 +2,15 @@ package com.akgarg.urlshortener.customalias.v1.db;
 
 import com.akgarg.urlshortener.customalias.v1.CustomAlias;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Profile("prod")
 @Service
 @RequiredArgsConstructor
-public class MySQLCustomAliasDatabaseService implements CustomAliasDatabaseService {
-
-    private static final Logger LOGGER = LogManager.getLogger(MySQLCustomAliasDatabaseService.class);
+@Slf4j
+public class MongoCustomAliasDatabaseService implements CustomAliasDatabaseService {
 
     private final CustomAliasRepository customAliasRepository;
 
@@ -22,7 +20,7 @@ public class MySQLCustomAliasDatabaseService implements CustomAliasDatabaseServi
             customAliasRepository.save(customAlias);
             return true;
         } catch (Exception e) {
-            LOGGER.error("Error adding/updating custom alias", e);
+            log.error("Error adding/updating custom alias", e);
             return false;
         }
     }

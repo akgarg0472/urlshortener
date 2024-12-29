@@ -3,8 +3,6 @@ package com.akgarg.urlshortener.url.v1.db;
 import com.akgarg.urlshortener.url.v1.Url;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +12,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MySQLUrlDatabaseService implements UrlDatabaseService {
+public class MongoUrlDatabaseService implements UrlDatabaseService {
 
     private final UrlRepository urlRepository;
 

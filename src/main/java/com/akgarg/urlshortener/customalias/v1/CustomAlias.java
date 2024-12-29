@@ -1,28 +1,28 @@
 package com.akgarg.urlshortener.customalias.v1;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
-@SuppressWarnings("JpaDataSourceORMInspection")
-@Entity
 @Getter
 @Setter
 @ToString
-@Table(name = "custom_aliases")
-public final class CustomAlias {
+@Document(collection = "custom_alias")
+public class CustomAlias {
 
     @Id
     private String alias;
 
-    @Column(name = "user_id", nullable = false)
+    @Field(name = "user_id")
+    @NotNull(message = "user_id cannot be null")
     private String userId;
 
-    @Column(name = "created_at", nullable = false)
+    @Field(name = "created_at")
+    @NotNull(message = "created_at cannot be null")
     private Long createdAt;
 
 }

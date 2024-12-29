@@ -1,21 +1,9 @@
 spring:
   kafka:
     bootstrap-servers: localhost:9092
-  datasource:
-    url: jdbc:mysql://localhost:3306/urlshortener?serverTimezone=UTC
-    username: root
-    password: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      pool-name: UrlShortenerServiceConnectionPool
-      maximum-pool-size: 20
-      minimum-idle: 5
-  jpa:
-    hibernate:
-      ddl-auto: update
-    generate-ddl: true
-    open-in-view: false
-    show-sql: false
+  data:
+    mongodb:
+      uri: mongodb://admin:admin@127.0.0.1:27017/urlshortener?authSource=admin
 
 kafka:
   statistics:

@@ -6,11 +6,7 @@ import com.akgarg.urlshortener.subs.v1.SubscriptionService;
 import com.akgarg.urlshortener.url.v1.Url;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

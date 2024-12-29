@@ -147,6 +147,8 @@ In the production environment, the application connects to a Kafka broker and Mo
 event streaming, while MongoDB stores the shortened URLs. The server configuration also ensures the application runs on
 port `9090` in production.
 
+---
+
 ## Running the Application
 
 1. **Set up MongoDB**: Ensure that MongoDB is installed and running locally. Create the `urlshortener` database if
@@ -168,6 +170,8 @@ port `9090` in production.
 
 5. **Access the Service**: The URL shortener service will be available at `http://127.0.0.1:9090/` in the development
    environment and `localhost:9090/` in production.
+
+---
 
 ## Additional Notes
 

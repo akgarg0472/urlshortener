@@ -68,8 +68,6 @@ environments. The updated configuration includes the following:
         - This configures the access level for the `prometheus` endpoint. Setting it to `read_only` ensures that the
           metrics exposed by Prometheus can be accessed for monitoring purposes but cannot be modified.
 
----
-
 ### 2. `application-dev.yml`
 
 This configuration is used for the development environment, where specific settings are adjusted to suit local
@@ -90,8 +88,6 @@ development needs. The key configurations in this file are:
         - This configuration binds the application to the IP address `127.0.0.1` (localhost). This ensures that the
           application will only be accessible from the local machine during development, providing a safe environment
           for local testing.
-
----
 
 ### 3. `application-prod.yml`
 
@@ -138,8 +134,6 @@ configurations in this file are:
           to `localhost:8765/`, meaning that the shortener service will be available on the local machine at port
           `8765`.
 
----
-
 ## Environment Configuration
 
 ### Development (`application-dev.yml`)
@@ -152,8 +146,6 @@ used for data storage. The server listens on `127.0.0.1` (localhost).
 In the production environment, the application connects to a Kafka broker and MongoDB running locally. Kafka is used for
 event streaming, while MongoDB stores the shortened URLs. The server configuration also ensures the application runs on
 port `9090` in production.
-
----
 
 ## Running the Application
 
@@ -176,8 +168,6 @@ port `9090` in production.
 
 5. **Access the Service**: The URL shortener service will be available at `http://127.0.0.1:9090/` in the development
    environment and `localhost:9090/` in production.
-
----
 
 ## Additional Notes
 

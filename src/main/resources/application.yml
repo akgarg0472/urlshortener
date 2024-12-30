@@ -22,3 +22,9 @@ management:
   endpoint:
     prometheus:
       access: read_only
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /docs

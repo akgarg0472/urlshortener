@@ -31,7 +31,7 @@ public class MongoUrlDatabaseService implements UrlDatabaseService {
     @Override
     public Optional<Url> getUrlByShortUrl(final String shortUrl) {
         try {
-            final var url = urlRepository.findById(shortUrl);
+            final var url = urlRepository.findByShortUrl(shortUrl);
 
             if (url.isEmpty()) {
                 log.error("No url record found for shortUrl: {}", shortUrl);

@@ -1,10 +1,12 @@
 package com.akgarg.urlshortener.url.v1;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -15,7 +17,12 @@ import org.springframework.data.mongodb.core.mapping.Field;
 public final class Url {
 
     @Id
+    private String id;
+
     @Field(name = "short_url")
+    @NotNull(message = "shortUrl cannot be null")
+    @NotBlank(message = "shortUrl cannot be empty")
+    @Indexed(unique = true)
     private String shortUrl;
 
     @Field(name = "original_url")

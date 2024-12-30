@@ -16,6 +16,7 @@
 - [Environment Configuration](#environment-configuration)
 - [Running the Application](#running-the-application)
 - [Docker Setup](#docker-setup)
+- [API Documentation](#api-documentation)
 - [Additional Notes](#additional-notes)
 
 ## Introduction
@@ -258,6 +259,34 @@ docker run -p 9090:9090 \
 ```
 
 This will start the container with the necessary environment variables.
+
+## API Documentation
+
+The **API Documentation** for the URL Shortener Profile Service is automatically generated using **Springdoc OpenAPI**
+and can be accessed at the following endpoints:
+
+1. **OpenAPI Specification**: Available at:
+
+    ```text
+    http://<host>:<port>/api-docs
+    ```
+
+   This provides the raw OpenAPI specification in JSON format, which can be used for integrations or importing into API
+   tools.
+
+2. **Swagger UI**: The user-friendly API documentation is accessible at:
+
+    ```text
+    http://<host>:<port>/docs
+    ```
+
+   Replace `<host>` and `<port>` with your application's host and port. For example, if running locally:
+
+- OpenAPI Specification: [http://localhost:8566/api-docs](http://localhost:8566/api-docs)
+- Swagger UI: [http://localhost:8566/docs](http://localhost:8566/docs)
+
+The Swagger UI provides detailed information about the available endpoints, including request and response formats,
+sample payloads, and error codes, making it easy for developers to integrate with the service.
 
 ## Additional Notes
 

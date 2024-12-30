@@ -282,8 +282,8 @@ and can be accessed at the following endpoints:
 
    Replace `<host>` and `<port>` with your application's host and port. For example, if running locally:
 
-- OpenAPI Specification: [http://localhost:8566/api-docs](http://localhost:8566/api-docs)
-- Swagger UI: [http://localhost:8566/docs](http://localhost:8566/docs)
+- OpenAPI Specification: [http://localhost:9090/api-docs](http://localhost:9090/api-docs)
+- Swagger UI: [http://localhost:9090/docs](http://localhost:9090/docs)
 
 The Swagger UI provides detailed information about the available endpoints, including request and response formats,
 sample payloads, and error codes, making it easy for developers to integrate with the service.

@@ -1,6 +1,6 @@
 url:
   shortener:
-    domain: http://127.0.0.1:8765/
+    domain: 127.0.0.1:8765/
 
 spring:
   application:

@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 import static com.akgarg.urlshortener.utils.UrlShortenerUtil.extractRequestIdFromRequest;
 
@@ -57,6 +58,23 @@ public class UrlService {
 
         log.info("[{}]: Received: {}", requestId, request);
 
+        final long expirationTime;
+
+        if (request.expiresAt() != null) {
+            expirationTime = request.expiresAt();
+        } else {
+            expirationTime = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(365 * 100L);
+        }
+
+        if (expirationTime < System.currentTimeMillis()) {
+            log.info("{} invalid expiration time", requestId);
+            throw new UrlShortenerException(
+                    new String[]{"Invalid expiration time"},
+                    400,
+                    "URL Expiration time is past date: " + expirationTime
+            );
+        }
+
         final var customAlias = request.customAlias() != null && !request.customAlias().isBlank();
 
         if (customAlias) {
@@ -89,6 +107,7 @@ public class UrlService {
         url.setOriginalUrl(request.originalUrl());
         url.setCreatedAt(System.currentTimeMillis());
         url.setIsCustomAlias(customAlias);
+        url.setExpiresAt(expirationTime);
 
         final var savedUrl = urlDatabaseService.saveUrl(url);
 
@@ -156,6 +175,11 @@ public class UrlService {
             log.error("[{}]: Failed to retrieve original URL for {}", requestId, shortUrl);
             handleUrlFindFailureAndThrowException(httpRequest, shortUrl, startTime);
             return null;
+        }
+
+        if (urlMetadata.get().getExpiresAt() != null && urlMetadata.get().getExpiresAt() <= System.currentTimeMillis()) {
+            log.info("{} expired at {}", requestId, urlMetadata.get().getExpiresAt());
+            handleUrlFindFailureAndThrowException(httpRequest, shortUrl, startTime);
         }
 
         final var originalUrl = urlMetadata.get().getOriginalUrl();

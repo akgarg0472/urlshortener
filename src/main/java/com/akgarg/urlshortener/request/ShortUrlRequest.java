@@ -13,7 +13,10 @@ public record ShortUrlRequest(
         @NotBlank(message = "original_url should be valid") String originalUrl,
 
         @JsonProperty("custom_alias")
-        String customAlias
-        
+        String customAlias,
+
+        @JsonProperty("expires_at")
+        Long expiresAt
+
 ) {
 }

@@ -37,6 +37,10 @@ public final class Url {
     @NotNull(message = "created_at can't be null")
     private Long createdAt;
 
+    @Field(name = "expires_at")
+    @NotNull(message = "expires_at can't be null")
+    private Long expiresAt;
+
     @Field(name = "is_custom_alias")
     private Boolean isCustomAlias;
 

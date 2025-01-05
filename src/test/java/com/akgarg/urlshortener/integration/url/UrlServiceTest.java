@@ -79,7 +79,7 @@ final class UrlServiceTest {
         when(httpRequest.getAttribute("requestId")).thenReturn(System.nanoTime());
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
-        final var request = new ShortUrlRequest(userId, originalUrl, null);
+        final var request = new ShortUrlRequest(userId, originalUrl, null, null);
         final var generatedShorUrl = urlService.generateShortUrl(httpRequest, request);
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
@@ -103,7 +103,7 @@ final class UrlServiceTest {
         when(httpRequest.getAttribute("requestId")).thenReturn(requestId);
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
-        final var request = new ShortUrlRequest(userId, originalUrl, null);
+        final var request = new ShortUrlRequest(userId, originalUrl, null, null);
 
         assertThrows(
                 UrlShortenerException.class,
@@ -130,7 +130,7 @@ final class UrlServiceTest {
         when(httpRequest.getAttribute("requestId")).thenReturn(requestId);
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
-        final var request = new ShortUrlRequest(userId, originalUrl, null);
+        final var request = new ShortUrlRequest(userId, originalUrl, null, null);
 
         assertThrows(
                 UrlShortenerException.class,
@@ -160,7 +160,7 @@ final class UrlServiceTest {
         when(httpRequest.getAttribute("requestId")).thenReturn(requestId);
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
-        final var request = new ShortUrlRequest(userId, originalUrl, null);
+        final var request = new ShortUrlRequest(userId, originalUrl, null, null);
 
         assertThrows(
                 UrlShortenerException.class,

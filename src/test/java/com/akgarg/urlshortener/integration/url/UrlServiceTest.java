@@ -19,6 +19,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.net.URI;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -65,6 +66,7 @@ final class UrlServiceTest {
 
     @Test
     void generateShortUrl_ShouldReturn_ShortUrl() {
+        final var requestId = UUID.randomUUID().toString();
         final var number = 1_00_00_00_00_000L;
         final var shortUrl = "O9Oz9L1";
         final var userId = "4b34ed1400fd06ef21f";
@@ -92,8 +94,8 @@ final class UrlServiceTest {
 
     @Test
     void generateShortUrl_ShouldThrowUrlShortenerException_WhenNumberGeneratorServiceReturnsZero() {
+        final var requestId = UUID.randomUUID().toString();
         final var number = 0L;
-        final var requestId = System.nanoTime();
         final var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64";
         final var userId = "4b34ed1400fd06ef21f";
         final var originalUrl = "https://www.google.com";
@@ -120,7 +122,7 @@ final class UrlServiceTest {
     @Test
     void generateShortUrl_ShouldThrowUrlShortenerException_WhenNumberGeneratorServiceReturnsNegativeNumber() {
         final var number = 0L;
-        final var requestId = System.nanoTime();
+        final var requestId = UUID.randomUUID().toString();
         final var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64";
         final var userId = "4b34ed1400fd06ef21f";
         final var originalUrl = "https://www.google.com";
@@ -146,9 +148,9 @@ final class UrlServiceTest {
 
     @Test
     void generateShortUrl_ShouldThrowUrlShortenerException_WhenDatabaseSaveFailed() {
+        final var requestId = UUID.randomUUID().toString();
         final var number = 1_00_00_00_00_000L;
         final var shortUrl = "O9Oz9L1";
-        final var requestId = System.nanoTime();
         final var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64";
         final var userId = "4b34ed1400fd06ef21f";
         final var originalUrl = "https://www.google.com";

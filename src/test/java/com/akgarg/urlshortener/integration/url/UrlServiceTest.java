@@ -1,14 +1,14 @@
 package com.akgarg.urlshortener.integration.url;
 
-import com.akgarg.urlshortener.customalias.v1.CustomAliasService;
 import com.akgarg.urlshortener.encoding.EncoderService;
 import com.akgarg.urlshortener.exception.UrlShortenerException;
 import com.akgarg.urlshortener.numbergenerator.NumberGeneratorService;
 import com.akgarg.urlshortener.request.ShortUrlRequest;
-import com.akgarg.urlshortener.statistics.StatisticsService;
+import com.akgarg.urlshortener.statistics.StatisticsEventService;
 import com.akgarg.urlshortener.unit.faker.FakerService;
-import com.akgarg.urlshortener.url.v1.UrlService;
-import com.akgarg.urlshortener.url.v1.db.UrlDatabaseService;
+import com.akgarg.urlshortener.v1.subs.SubscriptionService;
+import com.akgarg.urlshortener.v1.url.UrlService;
+import com.akgarg.urlshortener.v1.url.db.UrlDatabaseService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,13 +34,13 @@ final class UrlServiceTest {
     @Mock
     private UrlDatabaseService urlDatabaseService;
     @Mock
-    private StatisticsService statisticsService;
+    private StatisticsEventService statisticsEventService;
     @Mock
     private NumberGeneratorService numberGeneratorService;
     @Mock
     private HttpServletRequest httpRequest;
     @Mock
-    private CustomAliasService customAliasService;
+    private SubscriptionService subscriptionService;
 
     private AutoCloseable closeable;
     private UrlService urlService;
@@ -49,12 +49,11 @@ final class UrlServiceTest {
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
         urlService = new UrlService(
-                encoderService,
-                urlDatabaseService,
-                statisticsService,
+                statisticsEventService,
                 numberGeneratorService,
-                customAliasService,
-                DOMAIN
+                subscriptionService,
+                urlDatabaseService,
+                encoderService
         );
     }
 
@@ -75,7 +74,7 @@ final class UrlServiceTest {
 
         when(numberGeneratorService.generateNextNumber()).thenReturn(number);
         when(encoderService.encode(number)).thenReturn(shortUrl);
-        when(urlDatabaseService.saveUrl(ArgumentMatchers.any())).thenReturn(true);
+        when(urlDatabaseService.saveUrl(requestId, ArgumentMatchers.any())).thenReturn(true);
         when(httpRequest.getAttribute("requestId")).thenReturn(System.nanoTime());
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
@@ -84,7 +83,7 @@ final class UrlServiceTest {
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
         verify(encoderService, times(1)).encode(number);
-        verify(urlDatabaseService, times(1)).saveUrl(ArgumentMatchers.any());
+        verify(urlDatabaseService, times(1)).saveUrl(requestId, ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
 
@@ -113,7 +112,7 @@ final class UrlServiceTest {
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
         verify(encoderService, times(0)).encode(number);
-        verify(urlDatabaseService, times(0)).saveUrl(ArgumentMatchers.any());
+        verify(urlDatabaseService, times(0)).saveUrl(requestId, ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
     }
@@ -140,7 +139,7 @@ final class UrlServiceTest {
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
         verify(encoderService, times(0)).encode(number);
-        verify(urlDatabaseService, times(0)).saveUrl(ArgumentMatchers.any());
+        verify(urlDatabaseService, times(0)).saveUrl(requestId, ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
     }
@@ -156,7 +155,7 @@ final class UrlServiceTest {
 
         when(numberGeneratorService.generateNextNumber()).thenReturn(number);
         when(encoderService.encode(number)).thenReturn(shortUrl);
-        when(urlDatabaseService.saveUrl(ArgumentMatchers.any())).thenReturn(false);
+        when(urlDatabaseService.saveUrl(requestId, ArgumentMatchers.any())).thenReturn(false);
         when(httpRequest.getAttribute("requestId")).thenReturn(requestId);
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
@@ -170,7 +169,7 @@ final class UrlServiceTest {
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
         verify(encoderService, times(1)).encode(number);
-        verify(urlDatabaseService, times(1)).saveUrl(ArgumentMatchers.any());
+        verify(urlDatabaseService, times(1)).saveUrl(requestId, ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
     }

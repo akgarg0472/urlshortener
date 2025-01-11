@@ -9,7 +9,7 @@ public class UrlShortenerException extends RuntimeException {
     private final int errorCode;
     private final String message;
 
-    public UrlShortenerException(final String[] errors, final int errorCode, String message) {
+    public UrlShortenerException(final String[] errors, final int errorCode, final String message) {
         this.errors = errors;
         this.errorCode = errorCode;
         this.message = message;

@@ -1,8 +1,8 @@
-package com.akgarg.urlshortener.v1.subs;
+package com.akgarg.urlshortener.v1.subscription;
 
 import com.akgarg.urlshortener.exception.SubscriptionException;
 import com.akgarg.urlshortener.v1.statistics.StatisticsService;
-import com.akgarg.urlshortener.v1.subs.cache.SubscriptionCache;
+import com.akgarg.urlshortener.v1.subscription.cache.SubscriptionCache;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,14 +28,14 @@ public class SubscriptionService {
         final var subscriptionId = subscription.get("id").toString();
         final var userId = subscription.get("user_id").toString();
         final var packId = subscription.get("pack_id").toString();
-        final var activatedAt = subscription.get("activated_at").toString();
+        final var subscribedAt = subscription.get("subscribed_at").toString();
         final var expiresAt = subscription.get("expires_at").toString();
 
         final var instance = new Subscription();
         instance.setSubscriptionId(subscriptionId);
         instance.setUserId(userId);
         instance.setPackId(packId);
-        instance.setActivatedAt(Long.parseLong(activatedAt));
+        instance.setSubscribedAt(Long.parseLong(subscribedAt));
         instance.setExpiresAt(Long.parseLong(expiresAt));
 
         subscriptionCache.addOrUpdateSubscription(requestId, instance);
@@ -160,7 +160,7 @@ public class SubscriptionService {
             }
 
             subscriptionPack.get().setSubscriptionId(isDefaultPack ? null : subscription.get().getSubscriptionId());
-            subscriptionPack.get().setActivatedAt(isDefaultPack ? 0 : subscription.get().getActivatedAt());
+            subscriptionPack.get().setActivatedAt(isDefaultPack ? 0 : subscription.get().getSubscribedAt());
             subscriptionPack.get().setExpiresAt(isDefaultPack ? Long.MAX_VALUE : subscription.get().getExpiresAt());
 
             return subscriptionPack;

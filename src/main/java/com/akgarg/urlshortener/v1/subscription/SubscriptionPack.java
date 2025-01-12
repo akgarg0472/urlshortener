@@ -1,4 +1,4 @@
-package com.akgarg.urlshortener.v1.subs;
+package com.akgarg.urlshortener.v1.subscription;
 
 import lombok.Getter;
 import lombok.Setter;

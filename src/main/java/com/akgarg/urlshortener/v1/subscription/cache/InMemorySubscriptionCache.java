@@ -1,7 +1,7 @@
-package com.akgarg.urlshortener.v1.subs.cache;
+package com.akgarg.urlshortener.v1.subscription.cache;
 
-import com.akgarg.urlshortener.v1.subs.Subscription;
-import com.akgarg.urlshortener.v1.subs.SubscriptionPack;
+import com.akgarg.urlshortener.v1.subscription.Subscription;
+import com.akgarg.urlshortener.v1.subscription.SubscriptionPack;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;

@@ -1,9 +1,12 @@
 package com.akgarg.urlshortener.v1.statistics;
 
+import com.akgarg.urlshortener.exception.StatisticsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 
 @Slf4j
@@ -17,14 +20,12 @@ public class StatisticsService {
 
     public int getCurrentCustomAliasUsageForUser(final String requestId, final String userId, final long startTime, final long endTime) {
         log.info("[{}] Getting current custom alias usage for user {}", requestId, userId);
-        final var shortUrlQueryParam = environment.getProperty("statistics.service.usage.query-param.short-url", "shortUrl");
-        return query(requestId, userId, startTime, endTime, shortUrlQueryParam);
+        return query(requestId, userId, startTime, endTime, "customAlias");
     }
 
     public int getCurrentShortUrlUsageForUser(final String requestId, final String userId, final long startTime, final long endTime) {
         log.info("[{}] Getting current short url usage for user {}", requestId, userId);
-        final var customAliasQueryParam = environment.getProperty("statistics.service.usage.query-param.custom_alias", "customAlias");
-        return query(requestId, userId, startTime, endTime, customAliasQueryParam);
+        return query(requestId, userId, startTime, endTime, "shortUrl");
     }
 
     private int query(final String requestId, final String userId, final long startTime, final long endTime, final String metricName) {
@@ -53,8 +54,21 @@ public class StatisticsService {
 
             return statisticsResponse.value();
         } catch (Exception e) {
+            if (e instanceof IllegalArgumentException iae && iae.getMessage().startsWith("Service Instance cannot be null")) {
+                log.warn("[{}] statistics service is unreachable", requestId);
+                throw new StatisticsException(HttpStatus.SERVICE_UNAVAILABLE.value(), "Failed to query usage data. Please try again later!");
+            }
+
+            if (e instanceof HttpServerErrorException httpServerErrorException) {
+                log.warn("[{}] statistics service responded with code: {} and body: {}",
+                        requestId,
+                        httpServerErrorException.getStatusCode().value(),
+                        httpServerErrorException.getResponseBodyAsString());
+                throw new StatisticsException(httpServerErrorException.getStatusCode().value(), "Failed to query usage data. Please try again later!");
+            }
+
             log.error("[{}] statistics query failed", requestId, e);
-            return 0;
+            throw e;
         }
     }
 

@@ -6,7 +6,7 @@ import com.akgarg.urlshortener.numbergenerator.NumberGeneratorService;
 import com.akgarg.urlshortener.request.ShortUrlRequest;
 import com.akgarg.urlshortener.statistics.StatisticsEventService;
 import com.akgarg.urlshortener.unit.faker.FakerService;
-import com.akgarg.urlshortener.v1.subs.SubscriptionService;
+import com.akgarg.urlshortener.v1.subscription.SubscriptionService;
 import com.akgarg.urlshortener.v1.api.UrlService;
 import com.akgarg.urlshortener.v1.db.UrlDatabaseService;
 import jakarta.servlet.http.HttpServletRequest;

@@ -12,7 +12,7 @@ public class RestClientBuilderConfig {
     @LoadBalanced
     public RestClient.Builder statisticsServiceRestClientBuilder() {
         return RestClient.builder()
-                .baseUrl("urlshortener-statistics-service");
+                .baseUrl("http://urlshortener-statistics-service");
     }
 
 }

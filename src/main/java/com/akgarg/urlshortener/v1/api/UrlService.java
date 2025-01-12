@@ -10,7 +10,7 @@ import com.akgarg.urlshortener.statistics.StatisticsEvent;
 import com.akgarg.urlshortener.statistics.StatisticsEventService;
 import com.akgarg.urlshortener.v1.db.Url;
 import com.akgarg.urlshortener.v1.db.UrlDatabaseService;
-import com.akgarg.urlshortener.v1.subs.SubscriptionService;
+import com.akgarg.urlshortener.v1.subscription.SubscriptionService;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

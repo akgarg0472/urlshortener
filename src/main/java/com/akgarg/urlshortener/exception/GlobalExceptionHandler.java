@@ -30,6 +30,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(e.getStatusCode()).body(parseException(e));
     }
 
+    @ExceptionHandler(StatisticsException.class)
+    public ResponseEntity<ApiErrorResponse> handleStatisticsException(final StatisticsException e) {
+        return ResponseEntity.status(e.getStatusCode()).body(parseException(e));
+    }
+
     @ExceptionHandler(Exception.class)
     @SuppressWarnings("all")
     public ResponseEntity<ApiErrorResponse> handleGenericException(final Exception e) {

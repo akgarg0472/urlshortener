@@ -1,6 +1,7 @@
 package com.akgarg.urlshortener.response;
 
 import com.akgarg.urlshortener.exception.BadRequestException;
+import com.akgarg.urlshortener.exception.StatisticsException;
 import com.akgarg.urlshortener.exception.SubscriptionException;
 import com.akgarg.urlshortener.exception.UrlShortenerException;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -42,6 +43,10 @@ public final class ApiErrorResponse {
 
     public static ApiErrorResponse parseException(final SubscriptionException e) {
         return new ApiErrorResponse(null, e.getStatusCode().value(), e.getResponseMessage());
+    }
+
+    public static ApiErrorResponse parseException(final StatisticsException e) {
+        return new ApiErrorResponse(null, e.getStatusCode(), e.getMessage());
     }
 
     private static ApiErrorType getErrorTypeFromErrorCode(final int errorCode) {

@@ -1,4 +1,4 @@
-package com.akgarg.urlshortener.v1.subs;
+package com.akgarg.urlshortener.v1.subscription;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -12,7 +12,7 @@ public class Subscription {
     private String subscriptionId;
     private String userId;
     private String packId;
-    private long activatedAt;
+    private long subscribedAt;
     private long expiresAt;
 
 }

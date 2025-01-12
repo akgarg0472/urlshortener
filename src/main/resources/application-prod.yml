@@ -36,6 +36,3 @@ statistics:
   service:
     usage:
       base-path: /api/v1/statistics/usage
-      query-param:
-        short-url: shortUrl
-        custom_alias: customAlias

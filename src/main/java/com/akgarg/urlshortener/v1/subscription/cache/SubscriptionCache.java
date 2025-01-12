@@ -1,7 +1,7 @@
-package com.akgarg.urlshortener.v1.subs.cache;
+package com.akgarg.urlshortener.v1.subscription.cache;
 
-import com.akgarg.urlshortener.v1.subs.Subscription;
-import com.akgarg.urlshortener.v1.subs.SubscriptionPack;
+import com.akgarg.urlshortener.v1.subscription.Subscription;
+import com.akgarg.urlshortener.v1.subscription.SubscriptionPack;
 
 import java.util.Optional;
 

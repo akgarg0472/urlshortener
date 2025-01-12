@@ -10,8 +10,9 @@ public class RestClientBuilderConfig {
 
     @Bean
     @LoadBalanced
-    public RestClient.Builder restClientBuilder() {
-        return RestClient.builder();
+    public RestClient.Builder statisticsServiceRestClientBuilder() {
+        return RestClient.builder()
+                .baseUrl("urlshortener-statistics-service");
     }
 
 }

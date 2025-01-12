@@ -12,6 +12,7 @@ public class Subscription {
     private String subscriptionId;
     private String userId;
     private String packId;
+    private long activatedAt;
     private long expiresAt;
 
 }

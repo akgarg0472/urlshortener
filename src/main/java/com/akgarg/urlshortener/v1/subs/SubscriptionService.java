@@ -1,8 +1,8 @@
 package com.akgarg.urlshortener.v1.subs;
 
 import com.akgarg.urlshortener.exception.SubscriptionException;
+import com.akgarg.urlshortener.v1.statistics.StatisticsService;
 import com.akgarg.urlshortener.v1.subs.cache.SubscriptionCache;
-import com.akgarg.urlshortener.v1.usage.UsageTrackingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,7 +18,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SubscriptionService {
 
-    private final UsageTrackingService usageTrackingService;
+    private final StatisticsService statisticsService;
     private final SubscriptionCache subscriptionCache;
 
     public void addSubscription(final String requestId, final SubscriptionEvent subscriptionEvent) {
@@ -28,12 +28,14 @@ public class SubscriptionService {
         final var subscriptionId = subscription.get("id").toString();
         final var userId = subscription.get("user_id").toString();
         final var packId = subscription.get("pack_id").toString();
+        final var activatedAt = subscription.get("activated_at").toString();
         final var expiresAt = subscription.get("expires_at").toString();
 
         final var instance = new Subscription();
         instance.setSubscriptionId(subscriptionId);
         instance.setUserId(userId);
         instance.setPackId(packId);
+        instance.setActivatedAt(Long.parseLong(activatedAt));
         instance.setExpiresAt(Long.parseLong(expiresAt));
 
         subscriptionCache.addOrUpdateSubscription(requestId, instance);
@@ -78,7 +80,12 @@ public class SubscriptionService {
             }
 
             final var allowedShortUrls = extractAllowedShortUrlsFromSubscriptionPack(subscriptionPack.get());
-            final var currentShortUrlUsageForUser = usageTrackingService.getCurrentShortUrlUsageForUser(requestId, userId, subscriptionPack.get().getExpiresAt());
+            final var currentShortUrlUsageForUser = statisticsService.getCurrentShortUrlUsageForUser(
+                    requestId,
+                    userId,
+                    subscriptionPack.get().getActivatedAt(),
+                    subscriptionPack.get().getExpiresAt()
+            );
 
             if (currentShortUrlUsageForUser >= allowedShortUrls) {
                 log.warn("[{}] Custom aliases are not allowed for user: {}", requestId, userId);
@@ -106,8 +113,10 @@ public class SubscriptionService {
 
             final var allowedCustomAlias = extractAllowedCustomAliasesFromSubscriptionPack(subscriptionPack.get());
 
-            final var currentCustomAliasUsageForUser = usageTrackingService.getCurrentCustomAliasUsageForUser(requestId,
+            final var currentCustomAliasUsageForUser = statisticsService.getCurrentCustomAliasUsageForUser(
+                    requestId,
                     userId,
+                    subscriptionPack.get().getActivatedAt(),
                     subscriptionPack.get().getExpiresAt()
             );
 
@@ -121,16 +130,6 @@ public class SubscriptionService {
             log.error("[{}] error checking if custom aliases are allowed: {}", requestId, userId);
             throw new SubscriptionException(HttpStatusCode.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()), "Failed to check custom aliases");
         }
-    }
-
-    public void increaseCustomAliasCounter(final String requestId, final String userId) {
-        log.info("[{}] Increasing custom aliases counter: {}", requestId, userId);
-        usageTrackingService.increaseCustomAliasUsageByOne(requestId, userId);
-    }
-
-    public void increaseGeneratedShortUrlCounter(final String requestId, final String userId) {
-        log.info("[{}] Increasing generated short url counter: {}", requestId, userId);
-        usageTrackingService.increaseShortUrlUsageByOne(requestId, userId);
     }
 
     private Optional<SubscriptionPack> getSubscriptionPackForUser(final String requestId, final String userId) {
@@ -160,6 +159,8 @@ public class SubscriptionService {
                 return Optional.empty();
             }
 
+            subscriptionPack.get().setSubscriptionId(isDefaultPack ? null : subscription.get().getSubscriptionId());
+            subscriptionPack.get().setActivatedAt(isDefaultPack ? 0 : subscription.get().getActivatedAt());
             subscriptionPack.get().setExpiresAt(isDefaultPack ? Long.MAX_VALUE : subscription.get().getExpiresAt());
 
             return subscriptionPack;

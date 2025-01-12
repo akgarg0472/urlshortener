@@ -12,8 +12,10 @@ import java.util.List;
 public class SubscriptionPack {
 
     private String packId;
+    private String subscriptionId;
     private List<String> privileges;
     private boolean defaultPack;
+    private long activatedAt;
     private long expiresAt;
 
 }

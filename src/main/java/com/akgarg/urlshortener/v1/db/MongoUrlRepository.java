@@ -1,6 +1,5 @@
-package com.akgarg.urlshortener.v1.url.db;
+package com.akgarg.urlshortener.v1.db;
 
-import com.akgarg.urlshortener.v1.url.Url;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.Optional;

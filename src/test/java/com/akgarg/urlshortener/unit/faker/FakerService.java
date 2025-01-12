@@ -2,7 +2,7 @@ package com.akgarg.urlshortener.unit.faker;
 
 import com.akgarg.urlshortener.statistics.EventType;
 import com.akgarg.urlshortener.statistics.StatisticsEvent;
-import com.akgarg.urlshortener.v1.url.Url;
+import com.akgarg.urlshortener.v1.db.Url;
 import com.github.javafaker.Faker;
 
 import java.util.concurrent.TimeUnit;
@@ -27,11 +27,13 @@ public class FakerService {
                 eventType,
                 shortUrl,
                 originalUrl,
+                false,
                 userId,
                 ipAddress,
                 userAgent,
                 createdAt,
-                eventDuration
+                eventDuration,
+                System.currentTimeMillis()
         );
     }
 
@@ -41,7 +43,7 @@ public class FakerService {
         url.setOriginalUrl("https://www.google.com");
         url.setUserId("b34ed1400fd06ef21f");
         url.setCreatedAt(System.currentTimeMillis());
-        url.setIsCustomAlias(false);
+        url.setCustomAlias(false);
         return url;
     }
 

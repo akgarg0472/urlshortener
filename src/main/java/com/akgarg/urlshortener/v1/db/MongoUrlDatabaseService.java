@@ -1,6 +1,5 @@
-package com.akgarg.urlshortener.v1.url.db;
+package com.akgarg.urlshortener.v1.db;
 
-import com.akgarg.urlshortener.v1.url.Url;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;

@@ -1,4 +1,4 @@
-package com.akgarg.urlshortener.v1.url;
+package com.akgarg.urlshortener.v1.api;
 
 import com.akgarg.urlshortener.encoding.EncoderService;
 import com.akgarg.urlshortener.exception.UrlShortenerException;
@@ -8,8 +8,9 @@ import com.akgarg.urlshortener.response.GenerateUrlResponse;
 import com.akgarg.urlshortener.statistics.EventType;
 import com.akgarg.urlshortener.statistics.StatisticsEvent;
 import com.akgarg.urlshortener.statistics.StatisticsEventService;
+import com.akgarg.urlshortener.v1.db.Url;
+import com.akgarg.urlshortener.v1.db.UrlDatabaseService;
 import com.akgarg.urlshortener.v1.subs.SubscriptionService;
-import com.akgarg.urlshortener.v1.url.db.UrlDatabaseService;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -91,7 +92,7 @@ public class UrlService {
         url.setUserId(request.userId());
         url.setOriginalUrl(request.originalUrl());
         url.setCreatedAt(System.currentTimeMillis());
-        url.setIsCustomAlias(customAlias);
+        url.setCustomAlias(customAlias);
         url.setExpiresAt(expirationTime);
 
         final var savedUrl = urlDatabaseService.saveUrl(requestId, url);
@@ -99,11 +100,6 @@ public class UrlService {
         if (!savedUrl) {
             log.error("[{}]: Shortening URL failed: {}", requestId, request);
             handleShorteningFailureAndThrowException(httpRequest, request, startTime);
-        } else {
-            if (customAlias) {
-                subscriptionService.increaseCustomAliasCounter(requestId, userIdFromRequest);
-            }
-            subscriptionService.increaseGeneratedShortUrlCounter(requestId, userIdFromRequest);
         }
 
         generateStatisticsEvent(httpRequest, url, EventType.URL_CREATE_SUCCESS, startTime);
@@ -113,30 +109,6 @@ public class UrlService {
         log.info("[{}]: Short URL for {} is {}", requestId, request.originalUrl(), shortUrl);
 
         return new GenerateUrlResponse(shortUrlWithDomain, request.originalUrl(), 201);
-    }
-
-    private String getShortUrl(final ShortUrlRequest request, final Object requestId, final HttpServletRequest httpRequest, final long startTime) {
-        final var shortUrlNumber = numberGeneratorService.generateNextNumber();
-        log.debug("[{}]: Number generated for '{}' is {}", requestId, request.originalUrl(), shortUrlNumber);
-
-        if (shortUrlNumber <= 0) {
-            log.error("[{}]: Failed to generate number for {}", requestId, request);
-            handleShorteningFailureAndThrowException(httpRequest, request, startTime);
-        }
-
-        final var shortUrl = encoderService.encode(shortUrlNumber);
-        log.debug("[{}]: Encoded string for {} is {}", requestId, shortUrlNumber, shortUrl);
-        return shortUrl;
-    }
-
-    private void handleCustomAliasValidationFailed(final HttpServletRequest httpRequest, final ShortUrlRequest request, final long startTime) {
-        generateStatisticsEvent(httpRequest, Url.fromShortUrl(request.originalUrl()), EventType.URL_CREATE_FAILED, startTime);
-        throw new UrlShortenerException(new String[]{"CUSTOM_ALIAS_LIMIT_EXCEEDED"}, HttpStatus.FORBIDDEN.value(), "You have exceeded the custom alias limit as per your subscription plan");
-    }
-
-    private void handleUserNotAllowedToCreateShortUrlAndThrowException(final HttpServletRequest httpRequest, final ShortUrlRequest request, final long startTime) {
-        generateStatisticsEvent(httpRequest, Url.fromShortUrl(request.originalUrl()), EventType.URL_CREATE_FAILED, startTime);
-        throw new UrlShortenerException(new String[]{"SHORT_URL_LIMIT_EXCEEDED"}, HttpStatus.CONFLICT.value(), "You have exceeded the short url limit as per your subscription plan");
     }
 
     public URI getOriginalUrl(final HttpServletRequest httpRequest, final String shortUrl) {
@@ -175,6 +147,30 @@ public class UrlService {
         return originalUri;
     }
 
+    private String getShortUrl(final ShortUrlRequest request, final Object requestId, final HttpServletRequest httpRequest, final long startTime) {
+        final var shortUrlNumber = numberGeneratorService.generateNextNumber();
+        log.debug("[{}]: Number generated for '{}' is {}", requestId, request.originalUrl(), shortUrlNumber);
+
+        if (shortUrlNumber <= 0) {
+            log.error("[{}]: Failed to generate number for {}", requestId, request);
+            handleShorteningFailureAndThrowException(httpRequest, request, startTime);
+        }
+
+        final var shortUrl = encoderService.encode(shortUrlNumber);
+        log.debug("[{}]: Encoded string for {} is {}", requestId, shortUrlNumber, shortUrl);
+        return shortUrl;
+    }
+
+    private void handleCustomAliasValidationFailed(final HttpServletRequest httpRequest, final ShortUrlRequest request, final long startTime) {
+        generateStatisticsEvent(httpRequest, Url.fromShortUrl(request.originalUrl()), EventType.URL_CREATE_FAILED, startTime);
+        throw new UrlShortenerException(new String[]{"CUSTOM_ALIAS_LIMIT_EXCEEDED"}, HttpStatus.FORBIDDEN.value(), "You have exceeded the custom alias limit as per your subscription plan");
+    }
+
+    private void handleUserNotAllowedToCreateShortUrlAndThrowException(final HttpServletRequest httpRequest, final ShortUrlRequest request, final long startTime) {
+        generateStatisticsEvent(httpRequest, Url.fromShortUrl(request.originalUrl()), EventType.URL_CREATE_FAILED, startTime);
+        throw new UrlShortenerException(new String[]{"SHORT_URL_LIMIT_EXCEEDED"}, HttpStatus.CONFLICT.value(), "You have exceeded the short url limit as per your subscription plan");
+    }
+
     private void handleShorteningFailureAndThrowException(final HttpServletRequest httpRequest, final ShortUrlRequest request, final long startTime) {
         generateStatisticsEvent(httpRequest, Url.fromShortUrl(request.originalUrl()), EventType.URL_CREATE_FAILED, startTime);
         throw new UrlShortenerException(new String[]{"Error shortening url: " + request.originalUrl()}, 500, "Internal Server Error");
@@ -195,11 +191,13 @@ public class UrlService {
                 eventType,
                 url.getShortUrl(),
                 url.getOriginalUrl(),
+                url.isCustomAlias(),
                 url.getUserId(),
                 clientIp,
                 userAgent,
                 url.getCreatedAt(),
-                eventDuration);
+                eventDuration,
+                System.currentTimeMillis());
 
         statisticsEventService.publishEvent(statisticsEvent);
     }

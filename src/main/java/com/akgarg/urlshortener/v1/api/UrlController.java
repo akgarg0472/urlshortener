@@ -1,4 +1,4 @@
-package com.akgarg.urlshortener.v1.url;
+package com.akgarg.urlshortener.v1.api;
 
 import com.akgarg.urlshortener.request.ShortUrlRequest;
 import com.akgarg.urlshortener.response.GenerateUrlResponse;

@@ -5,10 +5,11 @@ public record StatisticsEvent(
         EventType eventType,
         String shortUrl,
         String originalUrl,
+        boolean customAlias,
         String userId,
         String ipAddress,
         String userAgent,
         Long createdAt,
-        long eventDuration
-) {
+        long eventDuration,
+        long timestamp) {
 }

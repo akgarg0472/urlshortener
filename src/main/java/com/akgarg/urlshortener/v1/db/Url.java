@@ -1,4 +1,4 @@
-package com.akgarg.urlshortener.v1.url;
+package com.akgarg.urlshortener.v1.db;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -41,12 +41,13 @@ public final class Url {
     @NotNull(message = "expires_at can't be null")
     private Long expiresAt;
 
-    @Field(name = "is_custom_alias")
-    private Boolean isCustomAlias;
+    @Field(name = "custom_alias")
+    private boolean customAlias;
 
     public static Url fromShortUrl(final String shortUrl) {
         final Url url = new Url();
         url.setShortUrl(shortUrl);
+        url.setCustomAlias(false);
         return url;
     }
 

@@ -1,6 +1,4 @@
-package com.akgarg.urlshortener.v1.url.db;
-
-import com.akgarg.urlshortener.v1.url.Url;
+package com.akgarg.urlshortener.v1.db;
 
 import java.util.Optional;
 

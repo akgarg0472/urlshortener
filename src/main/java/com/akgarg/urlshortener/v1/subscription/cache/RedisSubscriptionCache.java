@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
@@ -28,9 +29,11 @@ public class RedisSubscriptionCache implements SubscriptionCache {
         try {
             redisTemplate.opsForValue().set(
                     createSubscriptionKey(subscription.getUserId()),
-                    objectMapper.writeValueAsString(subscription)
+                    objectMapper.writeValueAsString(subscription),
+                    subscription.getExpiresAt() - System.currentTimeMillis(),
+                    TimeUnit.MILLISECONDS
             );
-            log.debug("[{}] Successfully added subscription to cache", requestId);
+            log.info("[{}] Successfully added subscription to cache", requestId);
         } catch (Exception e) {
             log.error("[{}] Error adding subscription to cache", requestId, e);
         }

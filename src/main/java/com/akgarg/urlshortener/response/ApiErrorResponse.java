@@ -38,7 +38,7 @@ public final class ApiErrorResponse {
     }
 
     public static ApiErrorResponse parseException(final UrlShortenerException e) {
-        return new ApiErrorResponse(e.getErrors(), getErrorTypeFromErrorCode(e.getErrorCode()).code, e.getMessage());
+        return new ApiErrorResponse(e.getErrors(), e.getErrorCode(), e.getMessage());
     }
 
     public static ApiErrorResponse parseException(final SubscriptionException e) {
@@ -47,14 +47,6 @@ public final class ApiErrorResponse {
 
     public static ApiErrorResponse parseException(final StatisticsException e) {
         return new ApiErrorResponse(null, e.getStatusCode(), e.getMessage());
-    }
-
-    private static ApiErrorType getErrorTypeFromErrorCode(final int errorCode) {
-        return switch (errorCode) {
-            case 404 -> NOT_FOUND;
-            case 400 -> BAD_REQUEST;
-            default -> INTERNAL_SERVER_ERROR;
-        };
     }
 
     public static ApiErrorResponse internalServerErrorResponse() {

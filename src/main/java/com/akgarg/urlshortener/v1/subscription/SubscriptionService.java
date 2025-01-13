@@ -3,13 +3,14 @@ package com.akgarg.urlshortener.v1.subscription;
 import com.akgarg.urlshortener.exception.SubscriptionException;
 import com.akgarg.urlshortener.v1.statistics.StatisticsService;
 import com.akgarg.urlshortener.v1.subscription.cache.SubscriptionCache;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
-import java.util.List;
 import java.util.Optional;
 
 @SuppressWarnings("LoggingSimilarMessage")
@@ -18,73 +19,32 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SubscriptionService {
 
+    private final RestClient.Builder subscriptionServiceRestClientBuilder;
     private final StatisticsService statisticsService;
     private final SubscriptionCache subscriptionCache;
 
-    public void addSubscription(final String requestId, final SubscriptionEvent subscriptionEvent) {
-        log.info("[{}] Adding subscription: {}", requestId, subscriptionEvent);
-
-        final var subscription = subscriptionEvent.getSubscription();
-        final var subscriptionId = subscription.get("id").toString();
-        final var userId = subscription.get("user_id").toString();
-        final var packId = subscription.get("pack_id").toString();
-        final var subscribedAt = subscription.get("subscribed_at").toString();
-        final var expiresAt = subscription.get("expires_at").toString();
-
-        final var instance = new Subscription();
-        instance.setSubscriptionId(subscriptionId);
-        instance.setUserId(userId);
-        instance.setPackId(packId);
-        instance.setSubscribedAt(Long.parseLong(subscribedAt));
-        instance.setExpiresAt(Long.parseLong(expiresAt));
-
-        subscriptionCache.addOrUpdateSubscription(requestId, instance);
-    }
-
-    public void addOrUpdateSubscriptionPack(final String requestId, final SubscriptionEvent subscriptionEvent) {
-        if (subscriptionEvent.getEventType() == SubscriptionEventType.SUBSCRIPTION_PACK_CREATED) {
-            log.info("[{}] Adding subscription pack: {}", requestId, subscriptionEvent);
-        } else {
-            log.info("[{}] Updating subscription pack: {}", requestId, subscriptionEvent);
-        }
-
-        final var subscriptionPack = subscriptionEvent.getSubscriptionPack();
-        final var packId = subscriptionPack.get("id").toString();
-        final var packPrivileges = List.of(subscriptionPack.get("privileges").toString().split("~"));
-        final var defaultPack = subscriptionPack.get("default_pack").toString();
-
-        final var instance = new SubscriptionPack();
-        instance.setPackId(packId);
-        instance.setPrivileges(packPrivileges);
-        instance.setDefaultPack(Boolean.parseBoolean(defaultPack));
-
-        subscriptionCache.addOrUpdateSubscriptionPack(requestId, instance);
-    }
-
-    public void deleteSubscriptionPack(final String requestId, final SubscriptionEvent subscriptionEvent) {
-        log.info("[{}] Deleting subscription pack: {}", requestId, subscriptionEvent);
-        final var subscriptionPack = subscriptionEvent.getSubscriptionPack();
-        final var packId = subscriptionPack.get("id").toString();
-        subscriptionCache.removeSubscriptionPack(requestId, packId);
+    @PostConstruct
+    public void init() {
+        // TODO: initialize cache from subscription service
     }
 
     public boolean isUserAllowedToCreateShortUrl(final String requestId, final String userId) {
         log.info("[{}] Checking if user {} is allowed to create short url", requestId, userId);
 
         try {
-            final var subscriptionPack = getSubscriptionPackForUser(requestId, userId);
+            final var subscription = getUserSubscription(requestId, userId);
 
-            if (subscriptionPack.isEmpty()) {
+            if (subscription.isEmpty()) {
                 log.info("[{}] No subscription found for user: {}", requestId, userId);
                 return false;
             }
 
-            final var allowedShortUrls = extractAllowedShortUrlsFromSubscriptionPack(subscriptionPack.get());
+            final var allowedShortUrls = extractAllowedShortUrlsFromSubscriptionPack(subscription.get().getPack());
             final var currentShortUrlUsageForUser = statisticsService.getCurrentShortUrlUsageForUser(
                     requestId,
                     userId,
-                    subscriptionPack.get().getActivatedAt(),
-                    subscriptionPack.get().getExpiresAt()
+                    subscription.get().getActivatedAt(),
+                    subscription.get().getExpiresAt()
             );
 
             if (currentShortUrlUsageForUser >= allowedShortUrls) {
@@ -104,20 +64,20 @@ public class SubscriptionService {
         log.info("[{}] Checking if custom aliases are allowed for user: {}", requestId, userId);
 
         try {
-            final var subscriptionPack = getSubscriptionPackForUser(requestId, userId);
+            final var subscription = getUserSubscription(requestId, userId);
 
-            if (subscriptionPack.isEmpty()) {
+            if (subscription.isEmpty()) {
                 log.info("[{}] No subscription found for user: {}", requestId, userId);
                 return false;
             }
 
-            final var allowedCustomAlias = extractAllowedCustomAliasesFromSubscriptionPack(subscriptionPack.get());
+            final var allowedCustomAlias = extractAllowedCustomAliasesFromSubscriptionPack(subscription.get().getPack());
 
             final var currentCustomAliasUsageForUser = statisticsService.getCurrentCustomAliasUsageForUser(
                     requestId,
                     userId,
-                    subscriptionPack.get().getActivatedAt(),
-                    subscriptionPack.get().getExpiresAt()
+                    subscription.get().getActivatedAt(),
+                    subscription.get().getExpiresAt()
             );
 
             if (currentCustomAliasUsageForUser >= allowedCustomAlias) {
@@ -132,39 +92,39 @@ public class SubscriptionService {
         }
     }
 
-    private Optional<SubscriptionPack> getSubscriptionPackForUser(final String requestId, final String userId) {
+    private Optional<Subscription> getUserSubscription(final String requestId, final String userId) {
         try {
-            final var subscription = subscriptionCache.getSubscription(requestId, userId);
-            final boolean isDefaultPack;
-            final String packId;
+            return subscriptionCache.getSubscription(requestId, userId)
+                    .or(() -> fetchSubscriptionFromSubsService(requestId, userId));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
 
-            if (subscription.isEmpty()) {
-                log.info("[{}] No subscription found. Fetching default free subscription: {}", requestId, userId);
-                final var defaultSubscription = subscriptionCache.getDefaultSubscriptionPack(requestId);
-                isDefaultPack = true;
+    private Optional<Subscription> fetchSubscriptionFromSubsService(final String requestId, final String userId) {
+        log.info("[{}] Fetching subscription from subscription service", requestId);
 
-                if (defaultSubscription.isEmpty()) {
-                    log.error("[{}] No free subscription found for user: {}", requestId, userId);
-                    return Optional.empty();
-                }
-                packId = defaultSubscription.get().getPackId();
-            } else {
-                packId = subscription.get().getPackId();
-                isDefaultPack = false;
-            }
+        try {
+            final var subscriptionResponse = subscriptionServiceRestClientBuilder.build()
+                    .get()
+                    .uri(uriBuilder -> uriBuilder.queryParam("userId", userId).build())
+                    .retrieve()
+                    .toEntity(Subscription.class)
+                    .getBody();
 
-            final var subscriptionPack = subscriptionCache.getSubscriptionPack(requestId, packId);
+            log.info("[{}] subscription API response: {}", requestId, subscriptionResponse);
 
-            if (subscriptionPack.isEmpty()) {
+            if (subscriptionResponse == null || subscriptionResponse.getStatusCode() != 200) {
+                log.warn("[{}] subscription API query failed with response code: {}",
+                        requestId,
+                        subscriptionResponse != null ? subscriptionResponse.getStatusCode() : "null"
+                );
                 return Optional.empty();
             }
 
-            subscriptionPack.get().setSubscriptionId(isDefaultPack ? null : subscription.get().getSubscriptionId());
-            subscriptionPack.get().setActivatedAt(isDefaultPack ? 0 : subscription.get().getSubscribedAt());
-            subscriptionPack.get().setExpiresAt(isDefaultPack ? Long.MAX_VALUE : subscription.get().getExpiresAt());
-
-            return subscriptionPack;
+            return Optional.of(subscriptionResponse);
         } catch (Exception e) {
+            log.error("[{}] error fetching subscription from subscription service", requestId, e);
             return Optional.empty();
         }
     }

@@ -15,4 +15,11 @@ public class RestClientBuilderConfig {
                 .baseUrl("http://urlshortener-statistics-service");
     }
 
+    @Bean
+    @LoadBalanced
+    public RestClient.Builder subscriptionServiceRestClientBuilder() {
+        return RestClient.builder()
+                .baseUrl("http://urlshortener-subscription-service");
+    }
+
 }

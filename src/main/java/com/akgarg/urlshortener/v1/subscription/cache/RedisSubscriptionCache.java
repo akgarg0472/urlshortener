@@ -1,8 +1,6 @@
 package com.akgarg.urlshortener.v1.subscription.cache;
 
-import com.akgarg.urlshortener.exception.SubscriptionCacheException;
 import com.akgarg.urlshortener.v1.subscription.Subscription;
-import com.akgarg.urlshortener.v1.subscription.SubscriptionPack;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,45 +13,27 @@ import java.util.Optional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@Profile({"prod", "PROD"})
+@Profile("prod")
 public class RedisSubscriptionCache implements SubscriptionCache {
 
-    private static final String REDIS_SUBSCRIPTION_CACHE_PREFIX = "subscription:";
-    private static final String REDIS_SUBSCRIPTION_PACK_CACHE_PREFIX = "subscription:pack:";
+    private static final String REDIS_SUBSCRIPTION_CACHE_PREFIX = "url:shortener:subscription:";
 
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
 
     @Override
-    public void addOrUpdateSubscription(final String requestId, final Subscription subscription) {
-        log.info("[{}] Adding subscription", requestId);
+    public void addSubscription(final String requestId, final Subscription subscription) {
+        log.info("[{}] Adding subscription to cache", requestId);
 
         try {
-            redisTemplate.opsForValue().set(createSubscriptionKey(subscription.getUserId()), objectMapper.writeValueAsString(subscription));
+            redisTemplate.opsForValue().set(
+                    createSubscriptionKey(subscription.getUserId()),
+                    objectMapper.writeValueAsString(subscription)
+            );
+            log.debug("[{}] Successfully added subscription to cache", requestId);
         } catch (Exception e) {
-            throw new SubscriptionCacheException("Failed to add subscription", e);
+            log.error("[{}] Error adding subscription to cache", requestId, e);
         }
-    }
-
-    @Override
-    public void addOrUpdateSubscriptionPack(final String requestId, final SubscriptionPack pack) {
-        log.info("[{}] Adding subscription pack", requestId);
-
-        try {
-            redisTemplate.opsForValue().set(createSubscriptionPackKey(pack.getPackId()), objectMapper.writeValueAsString(pack));
-            if (pack.isDefaultPack()) {
-                log.info("[{}] Adding default subscription pack", requestId);
-                redisTemplate.opsForValue().set(createDefaultSubscriptionPackKey(), objectMapper.writeValueAsString(pack));
-            }
-        } catch (Exception e) {
-            throw new SubscriptionCacheException("Failed to add/update subscription pack", e);
-        }
-    }
-
-    @Override
-    public void removeSubscriptionPack(final String requestId, final String packId) {
-        log.info("[{}] Removing subscription pack", requestId);
-        redisTemplate.delete(createSubscriptionPackKey(packId));
     }
 
     @Override
@@ -67,48 +47,13 @@ public class RedisSubscriptionCache implements SubscriptionCache {
             }
             return Optional.ofNullable(objectMapper.readValue(object, Subscription.class));
         } catch (Exception e) {
-            throw new SubscriptionCacheException("Failed to get subscription for userId: " + userId, e);
-        }
-    }
-
-    @Override
-    public Optional<SubscriptionPack> getSubscriptionPack(final String requestId, final String packId) {
-        log.info("[{}] Getting subscription pack for packId {}", requestId, packId);
-
-        try {
-            final var object = redisTemplate.opsForValue().get(createSubscriptionPackKey(packId));
-            if (object == null) {
-                return Optional.empty();
-            }
-            return Optional.ofNullable(objectMapper.readValue(object, SubscriptionPack.class));
-        } catch (Exception e) {
-            throw new SubscriptionCacheException("Failed to get subscription pack for packId: " + packId, e);
-        }
-    }
-
-    @Override
-    public Optional<SubscriptionPack> getDefaultSubscriptionPack(final String requestId) {
-        try {
-            final var object = redisTemplate.opsForValue().get(createDefaultSubscriptionPackKey());
-            if (object == null) {
-                return Optional.empty();
-            }
-            return Optional.ofNullable(objectMapper.readValue(object, SubscriptionPack.class));
-        } catch (Exception e) {
-            throw new SubscriptionCacheException("Failed to get default subscription pack", e);
+            log.error("[{}] Error retrieving subscription for userId {}", requestId, userId, e);
+            return Optional.empty();
         }
     }
 
     private String createSubscriptionKey(final String userId) {
         return REDIS_SUBSCRIPTION_CACHE_PREFIX + userId;
-    }
-
-    private String createSubscriptionPackKey(final String packId) {
-        return REDIS_SUBSCRIPTION_PACK_CACHE_PREFIX + packId;
-    }
-
-    private String createDefaultSubscriptionPackKey() {
-        return REDIS_SUBSCRIPTION_PACK_CACHE_PREFIX + "default";
     }
 
 }

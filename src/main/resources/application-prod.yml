@@ -17,9 +17,6 @@ kafka:
       name: urlshortener.statistics.events
       partitions: 1
       replication-factor: 1
-  subscriptions:
-    topic:
-      name: urlshortener.subscription.events
 
 server:
   port: 9090

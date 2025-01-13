@@ -48,7 +48,7 @@ public class StatisticsService {
             log.info("[{}] statistics response: {}", requestId, statisticsResponse);
 
             if (statisticsResponse == null || statisticsResponse.statusCode() != 200) {
-                log.warn("[{}] statistics query failed", requestId);
+                log.warn("[{}] statistics API query failed", requestId);
                 return 0;
             }
 

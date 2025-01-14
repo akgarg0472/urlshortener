@@ -6,6 +6,7 @@ import com.akgarg.urlshortener.v1.subscription.cache.SubscriptionCache;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -19,9 +20,13 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SubscriptionService {
 
+    private static final String REQUEST_ID_HEADER = "X-Request-ID";
+    private static final String USER_ID_HEADER_NAME = "X-USER-ID";
+
     private final RestClient.Builder subscriptionServiceRestClientBuilder;
     private final StatisticsService statisticsService;
     private final SubscriptionCache subscriptionCache;
+    private final Environment environment;
 
     @PostConstruct
     public void init() {
@@ -95,19 +100,26 @@ public class SubscriptionService {
     private Optional<Subscription> getUserSubscription(final String requestId, final String userId) {
         try {
             return subscriptionCache.getSubscription(requestId, userId)
-                    .or(() -> fetchSubscriptionFromSubsService(requestId, userId));
+                    .or(() -> fetchActiveSubscriptionFromSubsService(requestId, userId));
         } catch (Exception e) {
             return Optional.empty();
         }
     }
 
-    private Optional<Subscription> fetchSubscriptionFromSubsService(final String requestId, final String userId) {
+    private Optional<Subscription> fetchActiveSubscriptionFromSubsService(final String requestId, final String userId) {
         log.info("[{}] Fetching subscription from subscription service", requestId);
 
         try {
+            final var path = environment.getProperty("subscription.service.active.base-path", "/api/v1/subscriptions/active");
             final var subscriptionResponse = subscriptionServiceRestClientBuilder.build()
                     .get()
-                    .uri(uriBuilder -> uriBuilder.queryParam("userId", userId).build())
+                    .uri(uriBuilder -> uriBuilder
+                            .path(path)
+                            .queryParam("userId", userId)
+                            .build()
+                    )
+                    .header(REQUEST_ID_HEADER, requestId)
+                    .header(USER_ID_HEADER_NAME, userId)
                     .retrieve()
                     .toEntity(Subscription.class)
                     .getBody();

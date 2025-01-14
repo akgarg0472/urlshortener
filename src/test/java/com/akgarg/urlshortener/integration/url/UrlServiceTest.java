@@ -1,14 +1,14 @@
 package com.akgarg.urlshortener.integration.url;
 
 import com.akgarg.urlshortener.encoding.EncoderService;
+import com.akgarg.urlshortener.events.StatisticsEventService;
 import com.akgarg.urlshortener.exception.UrlShortenerException;
 import com.akgarg.urlshortener.numbergenerator.NumberGeneratorService;
 import com.akgarg.urlshortener.request.ShortUrlRequest;
-import com.akgarg.urlshortener.statistics.StatisticsEventService;
 import com.akgarg.urlshortener.unit.faker.FakerService;
-import com.akgarg.urlshortener.v1.subscription.SubscriptionService;
 import com.akgarg.urlshortener.v1.api.UrlService;
 import com.akgarg.urlshortener.v1.db.UrlDatabaseService;
+import com.akgarg.urlshortener.v1.subscription.SubscriptionService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,7 +75,7 @@ final class UrlServiceTest {
         final var expectedShortUrl = DOMAIN + shortUrl;
 
         when(numberGeneratorService.generateNextNumber()).thenReturn(number);
-        when(encoderService.encode(number)).thenReturn(shortUrl);
+        when(encoderService.encode(requestId, number)).thenReturn(shortUrl);
         when(urlDatabaseService.saveUrl(requestId, ArgumentMatchers.any())).thenReturn(true);
         when(httpRequest.getAttribute("requestId")).thenReturn(System.nanoTime());
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
@@ -84,7 +84,7 @@ final class UrlServiceTest {
         final var generatedShorUrl = urlService.generateShortUrl(httpRequest, request);
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
-        verify(encoderService, times(1)).encode(number);
+        verify(encoderService, times(1)).encode(requestId, number);
         verify(urlDatabaseService, times(1)).saveUrl(requestId, ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
@@ -113,7 +113,7 @@ final class UrlServiceTest {
         );
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
-        verify(encoderService, times(0)).encode(number);
+        verify(encoderService, times(0)).encode(requestId, number);
         verify(urlDatabaseService, times(0)).saveUrl(requestId, ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
@@ -140,7 +140,7 @@ final class UrlServiceTest {
         );
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
-        verify(encoderService, times(0)).encode(number);
+        verify(encoderService, times(0)).encode(requestId, number);
         verify(urlDatabaseService, times(0)).saveUrl(requestId, ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
@@ -156,7 +156,7 @@ final class UrlServiceTest {
         final var originalUrl = "https://www.google.com";
 
         when(numberGeneratorService.generateNextNumber()).thenReturn(number);
-        when(encoderService.encode(number)).thenReturn(shortUrl);
+        when(encoderService.encode(requestId, number)).thenReturn(shortUrl);
         when(urlDatabaseService.saveUrl(requestId, ArgumentMatchers.any())).thenReturn(false);
         when(httpRequest.getAttribute("requestId")).thenReturn(requestId);
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
@@ -170,7 +170,7 @@ final class UrlServiceTest {
         );
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
-        verify(encoderService, times(1)).encode(number);
+        verify(encoderService, times(1)).encode(requestId, number);
         verify(urlDatabaseService, times(1)).saveUrl(requestId, ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);

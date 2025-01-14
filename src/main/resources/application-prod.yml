@@ -29,7 +29,3 @@ process:
   node:
     id: ${PROCESS_NODE_ID:1}
 
-statistics:
-  service:
-    usage:
-      base-path: /api/v1/statistics/usage

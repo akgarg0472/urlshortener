@@ -1,7 +1,7 @@
 # URL Shortener Service
 
 ![Java Version](https://img.shields.io/badge/Java-21-orange)
-![version](https://img.shields.io/badge/version-1.2.0-blue)
+![version](https://img.shields.io/badge/version-1.2.1-blue)
 
 ## Table of Contents
 

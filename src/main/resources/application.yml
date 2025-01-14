@@ -28,3 +28,12 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /docs
+
+statistics:
+  service:
+    usage:
+      base-path: /api/v1/statistics/usage
+subscription:
+  service:
+    active:
+      base-path: /api/v1/subscriptions/active

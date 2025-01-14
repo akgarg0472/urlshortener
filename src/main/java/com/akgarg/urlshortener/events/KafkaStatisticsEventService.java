@@ -1,4 +1,4 @@
-package com.akgarg.urlshortener.statistics;
+package com.akgarg.urlshortener.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

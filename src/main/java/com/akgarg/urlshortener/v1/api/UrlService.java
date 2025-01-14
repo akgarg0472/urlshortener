@@ -5,9 +5,9 @@ import com.akgarg.urlshortener.exception.UrlShortenerException;
 import com.akgarg.urlshortener.numbergenerator.NumberGeneratorService;
 import com.akgarg.urlshortener.request.ShortUrlRequest;
 import com.akgarg.urlshortener.response.GenerateUrlResponse;
-import com.akgarg.urlshortener.statistics.EventType;
-import com.akgarg.urlshortener.statistics.StatisticsEvent;
-import com.akgarg.urlshortener.statistics.StatisticsEventService;
+import com.akgarg.urlshortener.events.EventType;
+import com.akgarg.urlshortener.events.StatisticsEvent;
+import com.akgarg.urlshortener.events.StatisticsEventService;
 import com.akgarg.urlshortener.v1.db.Url;
 import com.akgarg.urlshortener.v1.db.UrlDatabaseService;
 import com.akgarg.urlshortener.v1.subscription.SubscriptionService;
@@ -147,7 +147,7 @@ public class UrlService {
         return originalUri;
     }
 
-    private String getShortUrl(final ShortUrlRequest request, final Object requestId, final HttpServletRequest httpRequest, final long startTime) {
+    private String getShortUrl(final ShortUrlRequest request, final String requestId, final HttpServletRequest httpRequest, final long startTime) {
         final var shortUrlNumber = numberGeneratorService.generateNextNumber();
         log.debug("[{}]: Number generated for '{}' is {}", requestId, request.originalUrl(), shortUrlNumber);
 
@@ -156,7 +156,7 @@ public class UrlService {
             handleShorteningFailureAndThrowException(httpRequest, request, startTime);
         }
 
-        final var shortUrl = encoderService.encode(shortUrlNumber);
+        final var shortUrl = encoderService.encode(requestId ,shortUrlNumber);
         log.debug("[{}]: Encoded string for {} is {}", requestId, shortUrlNumber, shortUrl);
         return shortUrl;
     }

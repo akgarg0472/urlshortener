@@ -12,11 +12,11 @@ public class Base62EncoderService implements EncoderService {
     };
 
     @Override
-    public String encode(final long number) {
-        log.info("Encoding number {} to base62", number);
+    public String encode(final String requestId, final long number) {
+        log.info("[{}] Encoding number {} to base62", requestId, number);
 
         if (number <= 0) {
-            log.error("Number {} is not valid for encoding", number);
+            log.error("[{}] Number {} is not valid for encoding", requestId, number);
             throw new IllegalArgumentException("Invalid number to encode: " + number);
         }
 
@@ -32,7 +32,7 @@ public class Base62EncoderService implements EncoderService {
 
         final var base62RepresentationString = base62Representation.toString();
 
-        log.debug("Base62 representation of {} is {}", number, base62RepresentationString);
+        log.debug("[{}] Base62 representation of {} is {}", requestId, number, base62RepresentationString);
 
         return base62RepresentationString;
     }

@@ -1,6 +1,6 @@
 package com.akgarg.urlshortener.unit.statistics;
 
-import com.akgarg.urlshortener.statistics.VoidStatisticsEventService;
+import com.akgarg.urlshortener.events.VoidStatisticsEventService;
 import com.akgarg.urlshortener.unit.faker.FakerService;
 import org.junit.jupiter.api.Test;
 

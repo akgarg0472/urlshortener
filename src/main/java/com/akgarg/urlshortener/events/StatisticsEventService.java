@@ -1,4 +1,4 @@
-package com.akgarg.urlshortener.statistics;
+package com.akgarg.urlshortener.events;
 
 public interface StatisticsEventService {
 

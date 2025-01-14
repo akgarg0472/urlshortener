@@ -1,7 +1,7 @@
 package com.akgarg.urlshortener.unit.faker;
 
-import com.akgarg.urlshortener.statistics.EventType;
-import com.akgarg.urlshortener.statistics.StatisticsEvent;
+import com.akgarg.urlshortener.events.EventType;
+import com.akgarg.urlshortener.events.StatisticsEvent;
 import com.akgarg.urlshortener.v1.db.Url;
 import com.github.javafaker.Faker;
 

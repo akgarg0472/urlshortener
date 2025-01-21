@@ -12,9 +12,9 @@
 
     <groupId>com.akgarg</groupId>
     <artifactId>UrlShortenerService</artifactId>
-    <version>1.2.1</version>
-    <name>UrlShortenerService</name>
-    <description>UrlShortenerService</description>
+    <version>1.2.2</version>
+    <name>UrlShortener Service</name>
+    <description>Service to perform URL shortening and retrieval for URL Shortener</description>
 
     <properties>
         <java.version>21</java.version>
@@ -167,6 +167,23 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build-info</goal>
+                        </goals>
+                        <configuration>
+                            <additionalProperties>
+                                <java.version>${java.version}</java.version>
+                                <spring.boot.version>${parent.version}</spring.boot.version>
+                                <description>${project.description}</description>
+                            </additionalProperties>
+                            <excludeInfoProperties>
+                                <property>group</property>
+                            </excludeInfoProperties>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>

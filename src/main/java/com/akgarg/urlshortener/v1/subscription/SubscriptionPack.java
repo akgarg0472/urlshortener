@@ -12,10 +12,10 @@ import java.util.List;
 @ToString
 public class SubscriptionPack {
 
-    @JsonProperty("id")
+    @JsonProperty("pack_id")
     private String id;
 
-    @JsonProperty("name")
+    @JsonProperty("pack_name")
     private String name;
 
     @JsonProperty("privileges")

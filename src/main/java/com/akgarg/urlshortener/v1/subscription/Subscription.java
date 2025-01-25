@@ -10,9 +10,6 @@ import lombok.ToString;
 @ToString
 public class Subscription {
 
-    @JsonProperty("status_code")
-    private int statusCode;
-
     @JsonProperty("subscription_id")
     private String subscriptionId;
 

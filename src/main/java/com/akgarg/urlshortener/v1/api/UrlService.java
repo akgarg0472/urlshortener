@@ -1,13 +1,13 @@
 package com.akgarg.urlshortener.v1.api;
 
 import com.akgarg.urlshortener.encoding.EncoderService;
+import com.akgarg.urlshortener.events.EventType;
+import com.akgarg.urlshortener.events.StatisticsEvent;
+import com.akgarg.urlshortener.events.StatisticsEventService;
 import com.akgarg.urlshortener.exception.UrlShortenerException;
 import com.akgarg.urlshortener.numbergenerator.NumberGeneratorService;
 import com.akgarg.urlshortener.request.ShortUrlRequest;
 import com.akgarg.urlshortener.response.GenerateUrlResponse;
-import com.akgarg.urlshortener.events.EventType;
-import com.akgarg.urlshortener.events.StatisticsEvent;
-import com.akgarg.urlshortener.events.StatisticsEventService;
 import com.akgarg.urlshortener.v1.db.Url;
 import com.akgarg.urlshortener.v1.db.UrlDatabaseService;
 import com.akgarg.urlshortener.v1.subscription.SubscriptionService;
@@ -156,7 +156,7 @@ public class UrlService {
             handleShorteningFailureAndThrowException(httpRequest, request, startTime);
         }
 
-        final var shortUrl = encoderService.encode(requestId ,shortUrlNumber);
+        final var shortUrl = encoderService.encode(requestId, shortUrlNumber);
         log.debug("[{}]: Encoded string for {} is {}", requestId, shortUrlNumber, shortUrl);
         return shortUrl;
     }
@@ -168,7 +168,7 @@ public class UrlService {
 
     private void handleUserNotAllowedToCreateShortUrlAndThrowException(final HttpServletRequest httpRequest, final ShortUrlRequest request, final long startTime) {
         generateStatisticsEvent(httpRequest, Url.fromShortUrl(request.originalUrl()), EventType.URL_CREATE_FAILED, startTime);
-        throw new UrlShortenerException(new String[]{"SHORT_URL_LIMIT_EXCEEDED"}, HttpStatus.CONFLICT.value(), "You have exceeded the short url limit as per your subscription plan");
+        throw new UrlShortenerException(new String[]{"SHORT_URL_LIMIT_EXCEEDED"}, HttpStatus.TOO_MANY_REQUESTS.value(), "You have exceeded the short url limit as per your subscription plan");
     }
 
     private void handleShorteningFailureAndThrowException(final HttpServletRequest httpRequest, final ShortUrlRequest request, final long startTime) {

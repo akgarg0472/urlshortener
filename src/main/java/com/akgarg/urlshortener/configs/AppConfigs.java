@@ -21,7 +21,7 @@ import java.util.Objects;
 public class AppConfigs {
 
     @Bean
-    @Profile({"prod", "PROD"})
+    @Profile("prod")
     public NumberGeneratorService timestampNumberGeneratorService(final Environment environment) {
         log.info("Configuring timestamp generator service");
         final var nodeId = Objects.requireNonNull(
@@ -32,21 +32,21 @@ public class AppConfigs {
     }
 
     @Bean
-    @Profile({"dev", "DEV"})
+    @Profile("dev")
     public NumberGeneratorService inMemoryNumberGeneratorService() {
         log.info("Configuring in-memory number generator service");
         return new InMemoryNumberGeneratorService();
     }
 
     @Bean
-    @Profile({"prod", "PROD"})
+    @Profile("prod")
     public StatisticsEventService kafkaStatisticsEventService(final KafkaTemplate<String, String> kafkaTemplate, final ObjectMapper objectMapper) {
         log.info("Configuring kafka statistics event service");
         return new KafkaStatisticsEventService(kafkaTemplate, objectMapper);
     }
 
     @Bean
-    @Profile({"dev", "DEV"})
+    @Profile("dev")
     public StatisticsEventService voidStatisticsEventService() {
         log.info("Configuring void statistics event service");
         return new VoidStatisticsEventService();

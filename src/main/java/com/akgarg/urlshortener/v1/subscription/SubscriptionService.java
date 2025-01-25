@@ -3,7 +3,6 @@ package com.akgarg.urlshortener.v1.subscription;
 import com.akgarg.urlshortener.exception.SubscriptionException;
 import com.akgarg.urlshortener.v1.statistics.StatisticsService;
 import com.akgarg.urlshortener.v1.subscription.cache.SubscriptionCache;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
@@ -28,11 +27,6 @@ public class SubscriptionService {
     private final SubscriptionCache subscriptionCache;
     private final Environment environment;
 
-    @PostConstruct
-    public void init() {
-        // TODO: initialize cache from subscription service
-    }
-
     public boolean isUserAllowedToCreateShortUrl(final String requestId, final String userId) {
         log.info("[{}] Checking if user {} is allowed to create short url", requestId, userId);
 
@@ -53,7 +47,7 @@ public class SubscriptionService {
             );
 
             if (currentShortUrlUsageForUser >= allowedShortUrls) {
-                log.warn("[{}] Custom aliases are not allowed for user: {}", requestId, userId);
+                log.warn("[{}] Short URLs threshold crossed for user. Allowed: {}, consumed: {}", requestId, allowedShortUrls, currentShortUrlUsageForUser);
                 return false;
             }
 
@@ -121,20 +115,20 @@ public class SubscriptionService {
                     .header(REQUEST_ID_HEADER, requestId)
                     .header(USER_ID_HEADER_NAME, userId)
                     .retrieve()
-                    .toEntity(Subscription.class)
+                    .toEntity(SubscriptionApiResponse.class)
                     .getBody();
 
             log.info("[{}] subscription API response: {}", requestId, subscriptionResponse);
 
-            if (subscriptionResponse == null || subscriptionResponse.getStatusCode() != 200) {
+            if (subscriptionResponse == null || subscriptionResponse.statusCode() != 200) {
                 log.warn("[{}] subscription API query failed with response code: {}",
                         requestId,
-                        subscriptionResponse != null ? subscriptionResponse.getStatusCode() : "null"
+                        subscriptionResponse != null ? subscriptionResponse.statusCode() : "null"
                 );
                 return Optional.empty();
             }
 
-            return Optional.of(subscriptionResponse);
+            return Optional.of(extractSubscription(subscriptionResponse));
         } catch (Exception e) {
             log.error("[{}] error fetching subscription from subscription service", requestId, e);
             return Optional.empty();
@@ -145,9 +139,9 @@ public class SubscriptionService {
         try {
             final var customAlias = subscriptionPack.getPrivileges()
                     .stream()
-                    .filter(privilege -> privilege.startsWith("custom_alias_"))
+                    .filter(privilege -> privilege.startsWith("custom_alias:"))
                     .findFirst();
-            return customAlias.map(ca -> Integer.parseInt(ca.substring("custom_alias_".length()).trim())).orElse(0);
+            return customAlias.map(ca -> Integer.parseInt(ca.substring("custom_alias:".length()).trim())).orElse(0);
         } catch (Exception e) {
             return 0;
         }
@@ -157,12 +151,32 @@ public class SubscriptionService {
         try {
             final var shortUrls = subscriptionPack.getPrivileges()
                     .stream()
-                    .filter(privilege -> privilege.startsWith("short_url_"))
+                    .filter(privilege -> privilege.startsWith("short_url:"))
                     .findFirst();
-            return shortUrls.map(shortUrl -> Integer.parseInt(shortUrl.substring("short_url_".length()).trim())).orElse(0);
+            return shortUrls.map(shortUrl -> Integer.parseInt(shortUrl.substring("short_url:".length()).trim())).orElse(0);
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    private Subscription extractSubscription(final SubscriptionApiResponse subscriptionResponse) {
+        final var subscription = new Subscription();
+        subscription.setSubscriptionId(subscriptionResponse.subscriptionDto().getSubscriptionId());
+        subscription.setUserId(subscriptionResponse.subscriptionDto().getUserId());
+        subscription.setActivatedAt(subscriptionResponse.subscriptionDto().getActivatedAt());
+        subscription.setExpiresAt(subscriptionResponse.subscriptionDto().getExpiresAt());
+        subscription.setPack(extractSubscriptionPack(subscriptionResponse.subscriptionPackDto()));
+        return subscription;
+    }
+
+    private SubscriptionPack extractSubscriptionPack(final SubscriptionPackDto subscriptionPackDto) {
+        final var pack = new SubscriptionPack();
+        pack.setId(subscriptionPackDto.getId());
+        pack.setName(subscriptionPackDto.getName());
+        pack.setPrivileges(subscriptionPackDto.getPrivileges());
+        pack.setFeatures(subscriptionPackDto.getFeatures());
+        pack.setDefaultPack(subscriptionPackDto.isDefaultPack());
+        return pack;
     }
 
 }

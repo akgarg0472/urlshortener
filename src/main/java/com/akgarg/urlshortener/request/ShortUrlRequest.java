@@ -13,8 +13,8 @@ public record ShortUrlRequest(
         @JsonProperty("original_url")
         @NotBlank(message = "original_url should be valid")
         @Pattern(
-                regexp = "^(https?://)?[a-zA-Z0-9.-]+(\\.[a-zA-Z]{2,})?(:\\d+)?(/.*)?$",
-                message = "original_url should be a valid URL"
+                regexp = "^(https?://)([a-zA-Z0-9.-]+)(\\.[a-zA-Z]{2,})(:\\d+)?(/.*)?$",
+                message = "original_url should be a valid HTTP or HTTPS URL"
         )
         String originalUrl,
 

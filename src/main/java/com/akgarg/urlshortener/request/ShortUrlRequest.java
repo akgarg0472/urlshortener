@@ -2,6 +2,7 @@ package com.akgarg.urlshortener.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 public record ShortUrlRequest(
 
@@ -10,7 +11,12 @@ public record ShortUrlRequest(
         String userId,
 
         @JsonProperty("original_url")
-        @NotBlank(message = "original_url should be valid") String originalUrl,
+        @NotBlank(message = "original_url should be valid")
+        @Pattern(
+                regexp = "^(https?://)?[a-zA-Z0-9.-]+(\\.[a-zA-Z]{2,})?(:\\d+)?(/.*)?$",
+                message = "original_url should be a valid URL"
+        )
+        String originalUrl,
 
         @JsonProperty("custom_alias")
         String customAlias,

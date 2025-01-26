@@ -12,7 +12,7 @@
 
     <groupId>com.akgarg</groupId>
     <artifactId>UrlShortenerService</artifactId>
-    <version>1.2.3</version>
+    <version>1.2.4</version>
     <name>UrlShortener Service</name>
     <description>Service to perform URL shortening and retrieval for URL Shortener</description>
 

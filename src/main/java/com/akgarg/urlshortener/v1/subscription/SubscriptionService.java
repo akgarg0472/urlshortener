@@ -141,6 +141,9 @@ public class SubscriptionService {
                     .stream()
                     .filter(privilege -> privilege.startsWith("custom_alias:"))
                     .findFirst();
+            if (customAlias.isPresent() && customAlias.get().contains("unlimited")) {
+                return Integer.MAX_VALUE;
+            }
             return customAlias.map(ca -> Integer.parseInt(ca.substring("custom_alias:".length()).trim())).orElse(0);
         } catch (Exception e) {
             return 0;
@@ -153,6 +156,9 @@ public class SubscriptionService {
                     .stream()
                     .filter(privilege -> privilege.startsWith("short_url:"))
                     .findFirst();
+            if (shortUrls.isPresent() && shortUrls.get().contains("unlimited")) {
+                return Integer.MAX_VALUE;
+            }
             return shortUrls.map(shortUrl -> Integer.parseInt(shortUrl.substring("short_url:".length()).trim())).orElse(0);
         } catch (Exception e) {
             return 0;

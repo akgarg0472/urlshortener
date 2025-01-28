@@ -4,6 +4,7 @@ spring:
   data:
     mongodb:
       uri: mongodb://admin:admin@127.0.0.1:27017/urlshortener?authSource=admin
+      auto-index-creation: true
     redis:
       host: 127.0.0.1
       port: 6379

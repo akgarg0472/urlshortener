@@ -63,7 +63,7 @@ This configuration file contains general settings for the application.
 ```yml
 url:
   shortener:
-    domain: http://127.0.0.1:8765/
+    domain: localhost:8765/
 
 spring:
   application:
@@ -76,15 +76,33 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
     enabled: true
+  instance:
+    status-page-url-path: /admin/management/info
+    health-check-url-path: /admin/management/health
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,prometheus
+        include: health,prometheus,info
+      base-path: /admin/management
   endpoint:
     prometheus:
       access: read_only
+    health:
+      show-details: always
+      access: read_only
+    info:
+      access: read_only
+
+statistics:
+  service:
+    usage:
+      base-path: /api/v1/statistics/usage
+subscription:
+  service:
+    active:
+      base-path: /api/v1/subscriptions/active
 ```
 
 #### Key Features:
@@ -92,6 +110,8 @@ management:
 - **Eureka Client**: Registers the service with the Eureka server.
 - **Prometheus Metrics**: Exposes health and Prometheus endpoints for monitoring.
 - **Base Domain**: Configures the base domain for short URLs.
+- **Statistics Service Usage Base Path**: Configures the base path for accessing the usage statistics API.
+- **Subscription Service Active Base Path**: Configures the base path for managing active subscriptions.
 
 ### application-dev.yml
 

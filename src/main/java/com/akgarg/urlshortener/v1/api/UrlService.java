@@ -105,10 +105,9 @@ public class UrlService {
         generateStatisticsEvent(httpRequest, url, EventType.URL_CREATE_SUCCESS, startTime);
 
         log.info("[{}]: Url shorten successfully: {}", requestId, url);
-        final var shortUrlWithDomain = domain + url.getShortUrl();
         log.info("[{}]: Short URL for {} is {}", requestId, request.originalUrl(), shortUrl);
 
-        return new GenerateUrlResponse(shortUrlWithDomain, request.originalUrl(), 201);
+        return new GenerateUrlResponse(url.getShortUrl(), request.originalUrl(), 201);
     }
 
     public URI getOriginalUrl(final HttpServletRequest httpRequest, final String shortUrl) {

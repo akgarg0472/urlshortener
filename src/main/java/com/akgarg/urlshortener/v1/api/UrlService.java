@@ -116,8 +116,8 @@ public class UrlService {
         }
 
         if (urlMetadata.get().getExpiresAt() != null && urlMetadata.get().getExpiresAt() <= System.currentTimeMillis()) {
-            log.info("{} expired at {}", requestId, urlMetadata.get().getExpiresAt());
-            handleUrlFindFailureAndThrowException(httpRequest, shortUrl, startTime);
+            log.info("{} URL expired at {}", requestId, urlMetadata.get().getExpiresAt());
+            handleUrlExpiredFailureAndThrowException(httpRequest, shortUrl, startTime);
         }
 
         final var originalUrl = urlMetadata.get().getOriginalUrl();
@@ -163,6 +163,11 @@ public class UrlService {
     private void handleShorteningFailureAndThrowException(final HttpServletRequest httpRequest, final ShortUrlRequest request, final long startTime) {
         generateStatisticsEvent(httpRequest, Url.fromShortUrl(request.originalUrl()), EventType.URL_CREATE_FAILED, startTime);
         throw new UrlShortenerException(new String[]{"Error shortening url: " + request.originalUrl()}, 500, "Internal Server Error");
+    }
+
+    private void handleUrlExpiredFailureAndThrowException(final HttpServletRequest httpRequest, final String shortUrl, final long startTime) throws UrlShortenerException {
+        generateStatisticsEvent(httpRequest, Url.fromShortUrl(shortUrl), EventType.URL_GET_FAILED, startTime);
+        throw new UrlShortenerException(new String[]{shortUrl + " is expired"}, 410, "Requested short URL is expired");
     }
 
     private void handleUrlFindFailureAndThrowException(final HttpServletRequest httpRequest, final String shortUrl, final long startTime) throws UrlShortenerException {

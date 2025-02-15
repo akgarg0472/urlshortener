@@ -1,6 +1,7 @@
 url:
   shortener:
-    domain: localhost:8765/
+    ui:
+      domain: http://localhost:3000
 
 spring:
   application:

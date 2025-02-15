@@ -1,7 +1,7 @@
 # URL Shortener Service
 
 ![Java Version](https://img.shields.io/badge/Java-21-orange)
-![version](https://img.shields.io/badge/version-1.2.6-blue)
+![version](https://img.shields.io/badge/version-1.2.7-blue)
 
 ## Table of Contents
 
@@ -63,7 +63,8 @@ This configuration file contains general settings for the application.
 ```yml
 url:
   shortener:
-    domain: localhost:8765/
+    ui:
+      domain: http://localhost:3000
 
 spring:
   application:

@@ -11,11 +11,9 @@ import com.akgarg.urlshortener.response.GenerateUrlResponse;
 import com.akgarg.urlshortener.v1.db.Url;
 import com.akgarg.urlshortener.v1.db.UrlDatabaseService;
 import com.akgarg.urlshortener.v1.subscription.SubscriptionService;
-import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -34,14 +32,6 @@ public class UrlService {
     private final SubscriptionService subscriptionService;
     private final UrlDatabaseService urlDatabaseService;
     private final EncoderService encoderService;
-
-    @Value("${url.shortener.domain}")
-    private String domain;
-
-    @PostConstruct
-    public void init() {
-        this.domain = domain.endsWith("/") ? domain : domain + "/";
-    }
 
     public GenerateUrlResponse generateShortUrl(final HttpServletRequest httpRequest, final ShortUrlRequest request) {
         final var requestId = extractRequestIdFromRequest(httpRequest);

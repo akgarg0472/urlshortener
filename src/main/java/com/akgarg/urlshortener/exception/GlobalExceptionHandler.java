@@ -1,12 +1,16 @@
 package com.akgarg.urlshortener.exception;
 
 import com.akgarg.urlshortener.response.ApiErrorResponse;
+import org.springframework.core.env.Environment;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Arrays;
 
@@ -14,6 +18,24 @@ import static com.akgarg.urlshortener.response.ApiErrorResponse.*;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private final HttpHeaders redirectHeaders;
+
+    public GlobalExceptionHandler(final Environment environment) {
+        final var isProd = java.util.Arrays.stream(environment.getActiveProfiles())
+                .anyMatch(profile -> profile.equalsIgnoreCase("prod") ||
+                        profile.equalsIgnoreCase("production"));
+
+        var location = environment.getProperty("url.shortener.ui.domain", "https://ui.cmpct.xyz/");
+
+        if (!location.matches("^(http://|https://).*")) {
+            //noinspection HttpUrlsUsage
+            location = isProd ? "https://" + location : "http://" + location;
+        }
+
+        redirectHeaders = new HttpHeaders();
+        redirectHeaders.add(HttpHeaders.LOCATION, location);
+    }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ApiErrorResponse> handleBadRequestException(final BadRequestException e) {
@@ -37,7 +59,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     @SuppressWarnings("all")
-    public ResponseEntity<ApiErrorResponse> handleGenericException(final Exception e) {
+    public ResponseEntity<?> handleGenericException(final Exception e) {
+        if (e instanceof NoResourceFoundException) {
+            return new ResponseEntity<>(redirectHeaders, HttpStatus.FOUND);
+        }
+
         final ApiErrorResponse errorResponse = switch (e) {
             case HttpRequestMethodNotSupportedException ex ->
                     methodNotAllowedErrorResponse("Request HTTP method '" + ex.getMethod() + "' is not allowed. Allowed: " + Arrays.toString(ex.getSupportedMethods()));

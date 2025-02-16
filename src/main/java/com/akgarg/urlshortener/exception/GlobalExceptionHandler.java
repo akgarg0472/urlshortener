@@ -3,6 +3,7 @@ package com.akgarg.urlshortener.exception;
 import com.akgarg.urlshortener.response.ApiErrorResponse;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -60,8 +61,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @SuppressWarnings("all")
     public ResponseEntity<?> handleGenericException(final Exception e) {
-        if (e instanceof NoResourceFoundException) {
-            return new ResponseEntity<>(redirectHeaders, HttpStatus.FOUND);
+        if (e instanceof NoResourceFoundException rnfe) {
+            if (rnfe.getHttpMethod().equals(HttpMethod.GET)) {
+                return new ResponseEntity<>(redirectHeaders, HttpStatus.FOUND);
+            }
+            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
         }
 
         final ApiErrorResponse errorResponse = switch (e) {

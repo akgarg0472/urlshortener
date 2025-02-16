@@ -65,7 +65,9 @@ public class GlobalExceptionHandler {
             if (rnfe.getHttpMethod().equals(HttpMethod.GET)) {
                 return new ResponseEntity<>(redirectHeaders, HttpStatus.FOUND);
             }
-            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
+            final var headers = new HttpHeaders();
+            headers.add(HttpHeaders.ALLOW, HttpMethod.GET.name());
+            return new ResponseEntity<>(headers, HttpStatus.METHOD_NOT_ALLOWED);
         }
 
         final ApiErrorResponse errorResponse = switch (e) {

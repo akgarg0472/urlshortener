@@ -22,11 +22,6 @@ kafka:
 server:
   port: 9090
 
-url:
-  shortener:
-    domain: localhost:8765/
-
 process:
   node:
     id: ${PROCESS_NODE_ID:1}
-

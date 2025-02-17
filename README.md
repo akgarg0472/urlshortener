@@ -1,7 +1,7 @@
 # URL Shortener Service
 
 ![Java Version](https://img.shields.io/badge/Java-21-orange)
-![version](https://img.shields.io/badge/version-1.2.7-blue)
+![version](https://img.shields.io/badge/version-1.3.0-blue)
 
 ## Table of Contents
 
@@ -23,7 +23,7 @@
 
 The **URL Shortener Service** is a microservice designed to create short URLs for long links, with a focus on high
 availability and performance. It utilizes **Spring Boot**, **MongoDB** for storing shortened URLs, and **Kafka** for
-event-driven communication. This service is registered with **Eureka** for service discovery and is production-ready.
+event-driven communication. This service is registered with **Consul** for service discovery and is production-ready.
 
 ## Prerequisites
 
@@ -33,7 +33,7 @@ Before running the service, ensure the following are installed and running:
 - **Maven** (for building the project)
 - **MongoDB** (for storing URL mappings)
 - **Kafka** (for publishing and consuming statistics events)
-- **Eureka Server** (for service discovery)
+- **Consul Server** (for service discovery)
 
 ## Installation
 
@@ -71,15 +71,23 @@ spring:
     name: urlshortener-service
   jackson:
     default-property-inclusion: non_null
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-    enabled: true
-  instance:
-    status-page-url-path: /admin/management/info
-    health-check-url-path: /admin/management/health
+    cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        service-name: ${spring.application.name}
+        instance-id: ${spring.application.name}-${spring.application.instance_id:${random.value}}
+        register: true
+        fail-fast: true
+        enabled: true
+        prefer-ip-address: true
+        catalog-services-watch-delay: 30000
+        health-check-interval: 30s
+        register-health-check: off
+        health-check-path: /admin/management/health
+        heartbeat:
+          reregister-service-on-failure: true
 
 management:
   endpoints:
@@ -108,7 +116,6 @@ subscription:
 
 #### Key Features:
 
-- **Eureka Client**: Registers the service with the Eureka server.
 - **Prometheus Metrics**: Exposes health and Prometheus endpoints for monitoring.
 - **Base Domain**: Configures the base domain for short URLs.
 - **Statistics Service Usage Base Path**: Configures the base path for accessing the usage statistics API.
@@ -155,10 +162,6 @@ kafka:
 
 server:
   port: 9090
-
-url:
-  shortener:
-    domain: localhost:8765/
 
 process:
   node:
@@ -278,4 +281,4 @@ sample payloads, and error codes, making it easy for developers to integrate wit
 
 - **Database Connection**: Ensure MongoDB is running and accessible at the URI specified in the configuration file.
 - **Kafka Topics**: Pre-create the Kafka topic for statistics events if auto-creation is disabled in your Kafka setup.
-- **Eureka Registration**: Verify that the Eureka server is running at the URL configured in application.yml.
+- **Consul Registration**: Verify that the Consul server is running at the URL configured in application.yml.

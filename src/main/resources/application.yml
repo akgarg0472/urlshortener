@@ -44,6 +44,9 @@ management:
       access: read_only
     info:
       access: read_only
+  health:
+    mongo:
+      enabled: false
 
 springdoc:
   api-docs:

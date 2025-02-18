@@ -45,7 +45,15 @@ management:
     info:
       access: read_only
   health:
+    ssl:
+      enabled: false
+    diskspace:
+      enabled: false
     mongo:
+      enabled: false
+    redis:
+      enabled: false
+    refresh:
       enabled: false
 
 springdoc:

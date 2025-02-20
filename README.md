@@ -1,7 +1,7 @@
 # URL Shortener Service
 
 ![Java Version](https://img.shields.io/badge/Java-21-orange)
-![version](https://img.shields.io/badge/version-1.3.2-blue)
+![version](https://img.shields.io/badge/version-1.3.3-blue)
 
 ## Table of Contents
 
@@ -176,18 +176,35 @@ process:
 
 ## Logging Configuration
 
-The URL Shortener Service uses environment variables for logging configuration. Here are the available environment
-variables that you can customize for logging:
+The URL Shortener Service uses environment variables for logging configuration. Below are the available environment
+variables that you can customize:
 
-- **LOG_LEVEL**: Specifies the log level for the application (e.g., `INFO`, `DEBUG`, `WARN`).
+- **SPRING_APPLICATION_NAME**: Specifies the service name used in logs.
+
+- **LOGGING_FILE_ENABLED**: Enables or disables file-based logging.
+    - Default value: `false`
+    - Allowed values: `true`, `false`
+
+- **LOGGING_FILE_BASE_PATH**: Specifies the base path for log files.
+    - Default value: `/tmp`
+
+- **LOGGING_LEVEL**: Specifies the log level for the application.
     - Default value: `INFO`
+    - Allowed values: `DEBUG`, `INFO`, `WARN`, `ERROR`
 
-- **LOG_PATH**: Specifies the base path for log files.
-    - Default value: `/tmp/logs/urlshortener`
+- **LOGGING_STREAM_ENABLED**: Enables or disables streaming logs.
+    - Default value: `false`
+    - Allowed values: `true`, `false`
 
-- **LOGGER_REF**: Specifies the appender reference to use for logging.
-    - Default value: `consoleLogger`
-    - Allowed values: `consoleLogger`, `fileLogger`
+- **LOGGING_STREAM_HOST**: Specifies the host for streaming logs.
+    - Default value: `localhost`
+
+- **LOGGING_STREAM_PORT**: Specifies the port for streaming logs.
+    - Default value: `5000`
+
+- **LOGGING_STREAM_PROTOCOL**: Specifies the protocol used for log streaming.
+    - Default value: `TCP`
+    - Allowed values: `TCP`, `UDP`
 
 ## Environment Configuration
 

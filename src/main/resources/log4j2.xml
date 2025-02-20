@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="INFO">
     <Properties>
-        <Property name="serviceName">${env:SPRING_APPLICATION_NAME}</Property>
+        <Property name="serviceName">urlshortener-service</Property>
         <Property name="enableFileLogging">${env:LOGGING_FILE_ENABLED:-false}</Property>
         <Property name="loggingFileBasePath">${env:LOGGING_FILE_BASE_PATH:-/tmp}</Property>
         <Property name="logLevel">${env:LOGGING_LEVEL:-INFO}</Property>

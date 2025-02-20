@@ -7,7 +7,9 @@ public class VoidStatisticsEventService implements StatisticsEventService {
 
     @Override
     public void publishEvent(final StatisticsEvent statisticsEvent) {
-        log.debug("Publishing '{}' event: {}", statisticsEvent.eventType().name(), statisticsEvent);
+        if (log.isDebugEnabled()) {
+            log.debug("Publishing '{}' event: {}", statisticsEvent.eventType().name(), statisticsEvent);
+        }
     }
 
 }

@@ -6,8 +6,8 @@ import java.util.Optional;
 
 public interface SubscriptionCache {
 
-    void addSubscription(String requestId, Subscription subscription);
+    void addSubscription(Subscription subscription);
 
-    Optional<Subscription> getSubscription(String requestId, String userId);
+    Optional<Subscription> getSubscription(String userId);
 
 }

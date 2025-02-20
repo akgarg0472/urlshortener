@@ -23,7 +23,7 @@ public class TimestampedNumberGenerator implements NumberGeneratorService {
     private long nodeIdSequenceBitResult = -1L;
 
     public TimestampedNumberGenerator(final int nodeId) {
-        log.info("Initializing with nodeId: {}", nodeId);
+        log.info("Initializing number generator service with nodeId: {}", nodeId);
 
         if (nodeId < 0 || nodeId > MAX_NODE_ID) {
             log.error("Node ID cannot be greater than {} or less than 0: {}", MAX_NODE_ID, nodeId);

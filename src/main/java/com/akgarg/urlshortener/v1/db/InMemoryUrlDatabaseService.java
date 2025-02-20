@@ -20,10 +20,12 @@ public class InMemoryUrlDatabaseService implements UrlDatabaseService {
     }
 
     @Override
-    public boolean saveUrl(final String requestId, final Url url) {
-        log.info("[{}] Going to save URL in DB", requestId);
+    public boolean saveUrl(final Url url) {
+        log.info("Going to save URL in DB");
         db.put(url.getShortUrl(), url);
-        log.debug("[{}] URL saved in db successfully", requestId);
+        if (log.isDebugEnabled()) {
+            log.debug("URL saved in db successfully");
+        }
         return true;
     }
 
@@ -31,7 +33,9 @@ public class InMemoryUrlDatabaseService implements UrlDatabaseService {
     public Optional<Url> getUrlByShortUrl(final String shortUrl) {
         log.info("Fetching url metadata for {}", shortUrl);
         final var urlMetadata = db.get(shortUrl);
-        log.trace("Metadata fetched for {}: {}", shortUrl, urlMetadata);
+        if (log.isDebugEnabled()) {
+            log.debug("Metadata fetched for {}: {}", shortUrl, urlMetadata);
+        }
         return Optional.ofNullable(urlMetadata);
     }
 

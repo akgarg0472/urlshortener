@@ -1,6 +1,7 @@
 package com.akgarg.urlshortener.exception;
 
 import com.akgarg.urlshortener.response.ApiErrorResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -17,24 +18,24 @@ import java.util.Arrays;
 
 import static com.akgarg.urlshortener.response.ApiErrorResponse.*;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private final HttpHeaders redirectHeaders;
+    private final HttpHeaders methodNotAllowedHeaders = new HttpHeaders();
+    private final HttpHeaders redirectHeaders = new HttpHeaders();
 
     public GlobalExceptionHandler(final Environment environment) {
+        methodNotAllowedHeaders.add(HttpHeaders.ALLOW, HttpMethod.GET.name());
+
         final var isProd = java.util.Arrays.stream(environment.getActiveProfiles())
                 .anyMatch(profile -> profile.equalsIgnoreCase("prod") ||
                         profile.equalsIgnoreCase("production"));
-
         var location = environment.getProperty("url.shortener.ui.domain", "https://ui.cmpct.xyz/");
-
         if (!location.matches("^(http://|https://).*")) {
             //noinspection HttpUrlsUsage
             location = isProd ? "https://" + location : "http://" + location;
         }
-
-        redirectHeaders = new HttpHeaders();
         redirectHeaders.add(HttpHeaders.LOCATION, location);
     }
 
@@ -59,15 +60,17 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    @SuppressWarnings("all")
-    public ResponseEntity<?> handleGenericException(final Exception e) {
-        if (e instanceof NoResourceFoundException rnfe) {
-            if (rnfe.getHttpMethod().equals(HttpMethod.GET)) {
+    public ResponseEntity<Object> handleGenericException(final Exception e) {
+        if (log.isDebugEnabled()) {
+            log.error("Handling exception", e);
+        }
+
+        if (e instanceof NoResourceFoundException resourceFoundException) {
+            if (resourceFoundException.getHttpMethod().equals(HttpMethod.GET)) {
                 return new ResponseEntity<>(redirectHeaders, HttpStatus.FOUND);
+            } else {
+                return new ResponseEntity<>(methodNotAllowedHeaders, HttpStatus.METHOD_NOT_ALLOWED);
             }
-            final var headers = new HttpHeaders();
-            headers.add(HttpHeaders.ALLOW, HttpMethod.GET.name());
-            return new ResponseEntity<>(headers, HttpStatus.METHOD_NOT_ALLOWED);
         }
 
         final ApiErrorResponse errorResponse = switch (e) {
@@ -75,7 +78,8 @@ public class GlobalExceptionHandler {
                     methodNotAllowedErrorResponse("Request HTTP method '" + ex.getMethod() + "' is not allowed. Allowed: " + Arrays.toString(ex.getSupportedMethods()));
             case HttpMediaTypeNotSupportedException ex ->
                     badRequestErrorResponse("Media type " + ex.getContentType() + " is not supported");
-            case HttpMessageNotReadableException ex -> badRequestErrorResponse("Please provide valid request body");
+            case HttpMessageNotReadableException ignored ->
+                    badRequestErrorResponse("Please provide valid request body");
             case null, default -> internalServerErrorResponse();
         };
 

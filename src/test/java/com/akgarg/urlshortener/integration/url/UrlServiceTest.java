@@ -75,17 +75,17 @@ final class UrlServiceTest {
         final var expectedShortUrl = DOMAIN + shortUrl;
 
         when(numberGeneratorService.generateNextNumber()).thenReturn(number);
-        when(encoderService.encode(requestId, number)).thenReturn(shortUrl);
-        when(urlDatabaseService.saveUrl(requestId, ArgumentMatchers.any())).thenReturn(true);
-        when(httpRequest.getAttribute("requestId")).thenReturn(System.nanoTime());
+        when(encoderService.encode(number)).thenReturn(shortUrl);
+        when(urlDatabaseService.saveUrl(ArgumentMatchers.any())).thenReturn(true);
+        when(httpRequest.getAttribute("requestId")).thenReturn(requestId);
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
         final var request = new ShortUrlRequest(userId, originalUrl, null, null);
         final var generatedShorUrl = urlService.generateShortUrl(httpRequest, request);
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
-        verify(encoderService, times(1)).encode(requestId, number);
-        verify(urlDatabaseService, times(1)).saveUrl(requestId, ArgumentMatchers.any());
+        verify(encoderService, times(1)).encode(number);
+        verify(urlDatabaseService, times(1)).saveUrl(ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
 
@@ -113,8 +113,8 @@ final class UrlServiceTest {
         );
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
-        verify(encoderService, times(0)).encode(requestId, number);
-        verify(urlDatabaseService, times(0)).saveUrl(requestId, ArgumentMatchers.any());
+        verify(encoderService, times(0)).encode(number);
+        verify(urlDatabaseService, times(0)).saveUrl(ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
     }
@@ -140,8 +140,8 @@ final class UrlServiceTest {
         );
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
-        verify(encoderService, times(0)).encode(requestId, number);
-        verify(urlDatabaseService, times(0)).saveUrl(requestId, ArgumentMatchers.any());
+        verify(encoderService, times(0)).encode(number);
+        verify(urlDatabaseService, times(0)).saveUrl(ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
     }
@@ -156,8 +156,8 @@ final class UrlServiceTest {
         final var originalUrl = "https://www.google.com";
 
         when(numberGeneratorService.generateNextNumber()).thenReturn(number);
-        when(encoderService.encode(requestId, number)).thenReturn(shortUrl);
-        when(urlDatabaseService.saveUrl(requestId, ArgumentMatchers.any())).thenReturn(false);
+        when(encoderService.encode(number)).thenReturn(shortUrl);
+        when(urlDatabaseService.saveUrl(ArgumentMatchers.any())).thenReturn(false);
         when(httpRequest.getAttribute("requestId")).thenReturn(requestId);
         when(httpRequest.getHeader("USER-AGENT")).thenReturn(userAgent);
 
@@ -170,8 +170,8 @@ final class UrlServiceTest {
         );
 
         verify(numberGeneratorService, times(1)).generateNextNumber();
-        verify(encoderService, times(1)).encode(requestId, number);
-        verify(urlDatabaseService, times(1)).saveUrl(requestId, ArgumentMatchers.any());
+        verify(encoderService, times(1)).encode(number);
+        verify(urlDatabaseService, times(1)).saveUrl(ArgumentMatchers.any());
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
     }

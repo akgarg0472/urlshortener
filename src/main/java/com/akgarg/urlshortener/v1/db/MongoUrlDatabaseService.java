@@ -16,10 +16,12 @@ public class MongoUrlDatabaseService implements UrlDatabaseService {
     private final MongoUrlRepository mongoUrlRepository;
 
     @Override
-    public boolean saveUrl(final String requestId, final Url url) {
+    public boolean saveUrl(final Url url) {
         try {
             mongoUrlRepository.save(url);
-            log.info("[{}] URL record saved successfully", requestId);
+            if (log.isDebugEnabled()) {
+                log.debug("URL record saved successfully");
+            }
             return true;
         } catch (Exception e) {
             log.error("Error saving url to database", e);
@@ -32,12 +34,10 @@ public class MongoUrlDatabaseService implements UrlDatabaseService {
         try {
             final var url = mongoUrlRepository.findByShortUrl(shortUrl);
 
-            if (url.isEmpty()) {
-                log.error("No url record found for shortUrl: {}", shortUrl);
-                return Optional.empty();
+            if (log.isDebugEnabled()) {
+                log.debug("Fetched url record for '{}' is: {}", shortUrl, url.orElse(null));
             }
 
-            log.debug("Fetched url record for '{}' is: {}", shortUrl, url.get());
             return url;
         } catch (Exception e) {
             log.error("Error fetching url from database", e);

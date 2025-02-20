@@ -37,7 +37,7 @@ public class UrlService {
         final var requestId = extractRequestIdFromRequest(httpRequest);
         final var startTime = System.currentTimeMillis();
 
-        log.info("[{}]: received generate short url request: {}", requestId, request);
+        log.info("Received generate short url request: {}", request);
 
         final long expirationTime;
 
@@ -48,14 +48,14 @@ public class UrlService {
         }
 
         if (expirationTime < System.currentTimeMillis()) {
-            log.info("{} invalid expiration time", requestId);
+            log.info("Invalid expiration time for generate short url request");
             throw new UrlShortenerException(new String[]{"Invalid expiration time"}, 400, "URL Expiration time is past date: " + expirationTime);
         }
 
         final var userIdFromRequest = extractUserIdFromRequest(httpRequest);
 
         if (userIdFromRequest == null || !userIdFromRequest.equals(request.userId())) {
-            log.error("{} invalid user id", requestId);
+            log.error("Invalid user id provided in generate short url request");
             throw new UrlShortenerException(new String[]{"User id in header and request body mismatch"}, 400, "Invalid user id");
         }
 
@@ -75,7 +75,7 @@ public class UrlService {
             }
         }
 
-        final String shortUrl = customAlias ? request.customAlias() : getShortUrl(request, requestId, httpRequest, startTime);
+        final String shortUrl = customAlias ? request.customAlias() : getShortUrl(request, httpRequest, startTime);
 
         final var url = new Url();
         url.setShortUrl(shortUrl);
@@ -85,38 +85,41 @@ public class UrlService {
         url.setCustomAlias(customAlias);
         url.setExpiresAt(expirationTime);
 
-        final var savedUrl = urlDatabaseService.saveUrl(requestId, url);
+        final var savedUrl = urlDatabaseService.saveUrl(url);
 
         if (!savedUrl) {
-            log.error("[{}]: Shortening URL failed: {}", requestId, request);
+            log.error("Fail to save short url: {}", shortUrl);
             handleShorteningFailureAndThrowException(httpRequest, request, startTime);
         }
 
         generateStatisticsEvent(httpRequest, url, EventType.URL_CREATE_SUCCESS, startTime);
 
-        log.info("[{}]: Url shorten successfully: {}", requestId, url);
-        log.info("[{}]: Short URL for {} is {}", requestId, request.originalUrl(), shortUrl);
+        log.info("Url shorten successfully: {}", url);
+        log.info("Short URL for {} is {}", request.originalUrl(), shortUrl);
 
         return new GenerateUrlResponse(url.getShortUrl(), request.originalUrl(), 201);
     }
 
     public URI getOriginalUrl(final HttpServletRequest httpRequest, final String shortUrl) {
-        final var requestId = extractRequestIdFromRequest(httpRequest);
-        log.info("[{}]: Received request to get original url for {}", requestId, shortUrl);
+        log.info("Received request to get original url for {}", shortUrl);
 
         final var startTime = System.currentTimeMillis();
         final var urlMetadata = urlDatabaseService.getUrlByShortUrl(shortUrl);
 
-        log.debug("[{}]: Metadata fetched for {} is {}", requestId, shortUrl, urlMetadata.orElse(null));
+        if (log.isDebugEnabled()) {
+            log.debug("Metadata fetched for {} is {}", shortUrl, urlMetadata.orElse(null));
+        }
 
         if (urlMetadata.isEmpty()) {
-            log.error("[{}]: Failed to retrieve original URL for {}", requestId, shortUrl);
+            log.info("Failed to retrieve original URL for {}", shortUrl);
             handleUrlFindFailureAndThrowException(httpRequest, shortUrl, startTime);
             return null;
         }
 
         if (urlMetadata.get().getExpiresAt() != null && urlMetadata.get().getExpiresAt() <= System.currentTimeMillis()) {
-            log.info("{} URL expired at {}", requestId, urlMetadata.get().getExpiresAt());
+            if (log.isDebugEnabled()) {
+                log.debug("URL expired at {}", urlMetadata.get().getExpiresAt());
+            }
             handleUrlExpiredFailureAndThrowException(httpRequest, shortUrl, startTime);
         }
 
@@ -131,38 +134,47 @@ public class UrlService {
 
         generateStatisticsEvent(httpRequest, urlMetadata.get(), EventType.URL_GET_SUCCESS, startTime);
 
-        log.debug("[{}]: Original URI for {} is {}", requestId, shortUrl, originalUri);
+        if (log.isDebugEnabled()) {
+            log.debug("Original URI for {} is {}", shortUrl, originalUri);
+        }
 
         return originalUri;
     }
 
-    private String getShortUrl(final ShortUrlRequest request, final String requestId, final HttpServletRequest httpRequest, final long startTime) {
+    private String getShortUrl(final ShortUrlRequest request, final HttpServletRequest httpRequest, final long startTime) {
         final var shortUrlNumber = numberGeneratorService.generateNextNumber();
-        log.debug("[{}]: Number generated for '{}' is {}", requestId, request.originalUrl(), shortUrlNumber);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Number generated for '{}' is {}", request.originalUrl(), shortUrlNumber);
+        }
 
         if (shortUrlNumber <= 0) {
-            log.error("[{}]: Failed to generate number for {}", requestId, request);
+            log.error("Failed to generate unique number for request");
             handleShorteningFailureAndThrowException(httpRequest, request, startTime);
         }
 
-        final var shortUrl = encoderService.encode(requestId, shortUrlNumber);
-        log.debug("[{}]: Encoded string for {} is {}", requestId, shortUrlNumber, shortUrl);
+        final var shortUrl = encoderService.encode(shortUrlNumber);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Encoded string for {} is {}", shortUrlNumber, shortUrl);
+        }
+
         return shortUrl;
     }
 
     private void handleCustomAliasValidationFailed(final HttpServletRequest httpRequest, final ShortUrlRequest request, final long startTime) {
         generateStatisticsEvent(httpRequest, Url.fromShortUrl(request.originalUrl()), EventType.URL_CREATE_FAILED, startTime);
-        throw new UrlShortenerException(new String[]{"CUSTOM_ALIAS_LIMIT_EXCEEDED"}, HttpStatus.FORBIDDEN.value(), "You have exceeded the custom alias limit as per your subscription plan");
+        throw new UrlShortenerException(new String[]{"Custom alias limit reached"}, HttpStatus.FORBIDDEN.value(), "You have exceeded the custom alias limit as per your subscription plan");
     }
 
     private void handleUserNotAllowedToCreateShortUrlAndThrowException(final HttpServletRequest httpRequest, final ShortUrlRequest request, final long startTime) {
         generateStatisticsEvent(httpRequest, Url.fromShortUrl(request.originalUrl()), EventType.URL_CREATE_FAILED, startTime);
-        throw new UrlShortenerException(new String[]{"SHORT_URL_LIMIT_EXCEEDED"}, HttpStatus.TOO_MANY_REQUESTS.value(), "You have exceeded the short url limit as per your subscription plan");
+        throw new UrlShortenerException(new String[]{"Short url limit reached"}, HttpStatus.TOO_MANY_REQUESTS.value(), "You have exceeded the short url limit as per your subscription plan");
     }
 
     private void handleShorteningFailureAndThrowException(final HttpServletRequest httpRequest, final ShortUrlRequest request, final long startTime) {
         generateStatisticsEvent(httpRequest, Url.fromShortUrl(request.originalUrl()), EventType.URL_CREATE_FAILED, startTime);
-        throw new UrlShortenerException(new String[]{"Error shortening url: " + request.originalUrl()}, 500, "Internal Server Error");
+        throw new UrlShortenerException(new String[]{"Failed to process request"}, 500, "Internal Server Error");
     }
 
     private void handleUrlExpiredFailureAndThrowException(final HttpServletRequest httpRequest, final String shortUrl, final long startTime) throws UrlShortenerException {

@@ -23,8 +23,10 @@ public class RedisSubscriptionCache implements SubscriptionCache {
     private final ObjectMapper objectMapper;
 
     @Override
-    public void addSubscription(final String requestId, final Subscription subscription) {
-        log.info("[{}] Adding subscription to cache", requestId);
+    public void addSubscription(final Subscription subscription) {
+        if (log.isDebugEnabled()) {
+            log.debug("Adding subscription to cache: {}", subscription);
+        }
 
         try {
             redisTemplate.opsForValue().set(
@@ -33,15 +35,14 @@ public class RedisSubscriptionCache implements SubscriptionCache {
                     subscription.getExpiresAt() - System.currentTimeMillis(),
                     TimeUnit.MILLISECONDS
             );
-            log.info("[{}] Successfully added subscription to cache", requestId);
         } catch (Exception e) {
-            log.error("[{}] Error adding subscription to cache", requestId, e);
+            log.error("Error adding subscription to cache", e);
         }
     }
 
     @Override
-    public Optional<Subscription> getSubscription(final String requestId, final String userId) {
-        log.info("[{}] Getting subscription for userId {}", requestId, userId);
+    public Optional<Subscription> getSubscription(final String userId) {
+        log.info("Getting subscription for userId {}", userId);
 
         try {
             final var object = redisTemplate.opsForValue().get(createSubscriptionKey(userId));
@@ -50,7 +51,7 @@ public class RedisSubscriptionCache implements SubscriptionCache {
             }
             return Optional.ofNullable(objectMapper.readValue(object, Subscription.class));
         } catch (Exception e) {
-            log.error("[{}] Error retrieving subscription for userId {}", requestId, userId, e);
+            log.error("Error retrieving user subscription", e);
             return Optional.empty();
         }
     }

@@ -26,6 +26,9 @@ public class KafkaStatisticsEventService implements StatisticsEventService {
 
     private Optional<String> serializeEvent(final StatisticsEvent statisticsEvent) {
         try {
+            if (log.isDebugEnabled()) {
+                log.debug("Serializing event {}", statisticsEvent);
+            }
             return Optional.of(objectMapper.writeValueAsString(statisticsEvent));
         } catch (Exception e) {
             log.error("Error occurred while serializing statistics event: {}", e.getMessage());

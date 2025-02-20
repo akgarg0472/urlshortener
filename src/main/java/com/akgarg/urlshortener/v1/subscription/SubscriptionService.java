@@ -13,14 +13,14 @@ import org.springframework.web.client.RestClient;
 
 import java.util.Optional;
 
+import static com.akgarg.urlshortener.utils.UrlShortenerUtil.REQUEST_ID_HEADER;
+import static com.akgarg.urlshortener.utils.UrlShortenerUtil.USER_ID_HEADER_NAME;
+
 @SuppressWarnings("LoggingSimilarMessage")
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SubscriptionService {
-
-    private static final String REQUEST_ID_HEADER = "X-Request-ID";
-    private static final String USER_ID_HEADER_NAME = "X-USER-ID";
 
     private final RestClient.Builder subscriptionServiceRestClientBuilder;
     private final StatisticsService statisticsService;
@@ -28,13 +28,13 @@ public class SubscriptionService {
     private final Environment environment;
 
     public boolean isUserAllowedToCreateShortUrl(final String requestId, final String userId) {
-        log.info("[{}] Checking if user {} is allowed to create short url", requestId, userId);
+        log.info("Checking if userId {} is allowed to create short url", userId);
 
         try {
             final var subscription = getUserSubscription(requestId, userId);
 
             if (subscription.isEmpty()) {
-                log.info("[{}] No subscription found for user: {}", requestId, userId);
+                log.info("No subscription found for userId {}", userId);
                 return false;
             }
 
@@ -47,26 +47,26 @@ public class SubscriptionService {
             );
 
             if (currentShortUrlUsageForUser >= allowedShortUrls) {
-                log.warn("[{}] Short URLs threshold crossed for user. Allowed: {}, consumed: {}", requestId, allowedShortUrls, currentShortUrlUsageForUser);
+                log.info("Short URLs threshold crossed for user. Allowed: {}, consumed: {}", allowedShortUrls, currentShortUrlUsageForUser);
                 return false;
             }
 
             return true;
         } catch (Exception e) {
-            log.error("[{}] Error checking if user {} is allowed to create short url", requestId, userId);
+            log.error("Error checking if user {} is allowed to create short url", userId);
             throw new SubscriptionException(HttpStatusCode.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()),
-                    "Failed to check if user " + userId + " is allowed to create short url");
+                    "Failed to process request. Please try again later.");
         }
     }
 
     public boolean isUserAllowedToCreateCustomAlias(final String requestId, final String userId) {
-        log.info("[{}] Checking if custom aliases are allowed for user: {}", requestId, userId);
+        log.info("Checking if userId {} is allowed to create custom alias", userId);
 
         try {
             final var subscription = getUserSubscription(requestId, userId);
 
             if (subscription.isEmpty()) {
-                log.info("[{}] No subscription found for user: {}", requestId, userId);
+                log.info("No subscription found for userId {}", userId);
                 return false;
             }
 
@@ -80,28 +80,33 @@ public class SubscriptionService {
             );
 
             if (currentCustomAliasUsageForUser >= allowedCustomAlias) {
-                log.warn("[{}] Custom aliases are not allowed for user: {}", requestId, userId);
+                log.warn("Custom aliases are not allowed for userId {}", userId);
                 return false;
             }
 
             return true;
         } catch (Exception e) {
-            log.error("[{}] error checking if custom aliases are allowed: {}", requestId, userId);
-            throw new SubscriptionException(HttpStatusCode.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()), "Failed to check custom aliases");
+            log.error("Error checking if custom aliases are allowed {}", userId);
+            throw new SubscriptionException(HttpStatusCode.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()),
+                    "Failed to process request. Please try again later.");
         }
     }
 
     private Optional<Subscription> getUserSubscription(final String requestId, final String userId) {
         try {
-            return subscriptionCache.getSubscription(requestId, userId)
-                    .or(() -> fetchActiveSubscriptionFromSubsService(requestId, userId));
+            return subscriptionCache.getSubscription(userId)
+                    .or(() -> {
+                        final var subscription = fetchActiveSubscriptionFromSubsService(requestId, userId);
+                        subscription.ifPresent(subscriptionCache::addSubscription);
+                        return subscription;
+                    });
         } catch (Exception e) {
             return Optional.empty();
         }
     }
 
     private Optional<Subscription> fetchActiveSubscriptionFromSubsService(final String requestId, final String userId) {
-        log.info("[{}] Fetching subscription from subscription service", requestId);
+        log.info("Fetching subscription from subscription service for userId {}", userId);
 
         try {
             final var path = environment.getProperty("subscription.service.active.base-path", "/api/v1/subscriptions/active");
@@ -118,19 +123,20 @@ public class SubscriptionService {
                     .toEntity(SubscriptionApiResponse.class)
                     .getBody();
 
-            log.info("[{}] subscription API response: {}", requestId, subscriptionResponse);
+            if (log.isDebugEnabled()) {
+                log.debug("Subscription API response: {}", subscriptionResponse);
+            }
 
             if (subscriptionResponse == null || subscriptionResponse.statusCode() != 200) {
-                log.warn("[{}] subscription API query failed with response code: {}",
-                        requestId,
-                        subscriptionResponse != null ? subscriptionResponse.statusCode() : "null"
+                log.warn("Subscription API query failed with response code {}",
+                        subscriptionResponse != null ? subscriptionResponse.statusCode() : null
                 );
                 return Optional.empty();
             }
 
             return Optional.of(extractSubscription(subscriptionResponse));
         } catch (Exception e) {
-            log.error("[{}] error fetching subscription from subscription service", requestId, e);
+            log.error("Error fetching subscription from subscription service", e);
             return Optional.empty();
         }
     }

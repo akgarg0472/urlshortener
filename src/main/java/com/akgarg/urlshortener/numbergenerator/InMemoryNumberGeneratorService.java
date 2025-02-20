@@ -7,9 +7,10 @@ public class InMemoryNumberGeneratorService implements NumberGeneratorService {
 
     @Override
     public long generateNextNumber() {
-        log.debug("Generating globally unique number");
         final var number = System.currentTimeMillis();
-        log.trace("Globally unique number generated: {}", number);
+        if (log.isDebugEnabled()) {
+            log.debug("Globally unique number generated: {}", number);
+        }
         return number;
     }
 

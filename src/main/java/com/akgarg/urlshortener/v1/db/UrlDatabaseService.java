@@ -4,7 +4,7 @@ import java.util.Optional;
 
 public interface UrlDatabaseService {
 
-    boolean saveUrl(String requestId, Url url);
+    boolean saveUrl(Url url);
 
     Optional<Url> getUrlByShortUrl(String shortUrl);
 

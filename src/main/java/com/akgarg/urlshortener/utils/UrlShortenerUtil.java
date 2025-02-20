@@ -7,8 +7,8 @@ import org.springframework.validation.BindingResult;
 
 public final class UrlShortenerUtil {
 
-    private static final String REQUEST_ID_HEADER = "X-Request-ID";
-    private static final String USER_ID_HEADER_NAME = "X-USER-ID";
+    public static final String REQUEST_ID_HEADER = "X-Request-ID";
+    public static final String USER_ID_HEADER_NAME = "X-USER-ID";
     private static final String X_FORWARDED_FOR_HEADER_NAME = "X-Forwarded-For";
     private static final String USER_AGENT_HEADER_NAME = "USER-AGENT";
 

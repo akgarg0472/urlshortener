@@ -2,6 +2,7 @@
 <Configuration status="INFO">
     <Properties>
         <Property name="serviceName">urlshortener-service</Property>
+        <Property name="enableConsoleLogging">${env:LOGGING_CONSOLE_ENABLED:-false}</Property>
         <Property name="enableFileLogging">${env:LOGGING_FILE_ENABLED:-false}</Property>
         <Property name="loggingFileBasePath">${env:LOGGING_FILE_BASE_PATH:-/tmp}</Property>
         <Property name="logLevel">${env:LOGGING_LEVEL:-INFO}</Property>
@@ -14,9 +15,19 @@
     <Appenders>
         <Null name="NullAppender"/>
 
-        <Console name="Console" target="SYSTEM_OUT">
-            <JsonTemplateLayout eventTemplateUri="classpath:JsonTemplateLayout.json" stackTraceEnabled="true"/>
-        </Console>
+        <Routing name="ConsoleRouter">
+            <Routes pattern="${enableConsoleLogging}">
+                <Route key="true">
+                    <Console name="Console" target="SYSTEM_OUT">
+                        <JsonTemplateLayout eventTemplateUri="classpath:JsonTemplateLayout.json"
+                                            stackTraceEnabled="true"/>
+                    </Console>
+                </Route>
+                <Route key="default">
+                    <AppenderRef ref="NullAppender"/>
+                </Route>
+            </Routes>
+        </Routing>
 
         <Routing name="FileRouter">
             <Routes pattern="${enableFileLogging}">
@@ -53,15 +64,12 @@
     </Appenders>
 
     <Loggers>
-        <Root level="info">
-            <AppenderRef ref="Console"/>
+        <Root level="INFO">
+            <AppenderRef ref="ConsoleRouter"/>
             <AppenderRef ref="FileRouter"/>
-            <AppenderRef ref="StreamRouter"/>
         </Root>
 
-        <Logger name="com.akgarg.sbhw" level="${logLevel}">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="FileRouter"/>
+        <Logger name="com.akgarg.urlshortener" level="${logLevel}">
             <AppenderRef ref="LogstashRouter"/>
         </Logger>
     </Loggers>

@@ -179,6 +179,10 @@ process:
 The URL Shortener Service uses environment variables for logging configuration. Below are the available environment
 variables that you can customize:
 
+- **LOGGING_CONSOLE_ENABLED**: Enables or disables console-based logging.
+    - Default value: `false`
+    - Allowed values: `true`, `false`
+    
 - **LOGGING_FILE_ENABLED**: Enables or disables file-based logging.
     - Default value: `false`
     - Allowed values: `true`, `false`

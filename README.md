@@ -1,7 +1,7 @@
 # URL Shortener Service
 
 ![Java Version](https://img.shields.io/badge/Java-21-orange)
-![version](https://img.shields.io/badge/version-1.4.0-blue)
+![version](https://img.shields.io/badge/version-1.4.1-blue)
 
 ## Table of Contents
 
@@ -182,7 +182,7 @@ variables that you can customize:
 - **LOGGING_CONSOLE_ENABLED**: Enables or disables console-based logging.
     - Default value: `false`
     - Allowed values: `true`, `false`
-    
+
 - **LOGGING_FILE_ENABLED**: Enables or disables file-based logging.
     - Default value: `false`
     - Allowed values: `true`, `false`

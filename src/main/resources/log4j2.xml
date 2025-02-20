@@ -70,7 +70,7 @@
         </Root>
 
         <Logger name="com.akgarg.urlshortener" level="${logLevel}">
-            <AppenderRef ref="LogstashRouter"/>
+            <AppenderRef ref="StreamRouter"/>
         </Logger>
     </Loggers>
 </Configuration>

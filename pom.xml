@@ -12,7 +12,7 @@
 
     <groupId>com.akgarg</groupId>
     <artifactId>UrlShortenerService</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
     <name>UrlShortener Service</name>
     <description>Service to perform URL shortening and retrieval for URL Shortener</description>
 
@@ -54,7 +54,7 @@
             <artifactId>log4j-layout-template-json</artifactId>
             <scope>runtime</scope>
         </dependency>
-        
+
         <!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-consul-discovery -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

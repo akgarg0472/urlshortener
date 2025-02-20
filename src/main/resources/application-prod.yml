@@ -20,7 +20,7 @@ kafka:
       replication-factor: 1
 
 server:
-  port: 9090
+  port: 0
 
 process:
   node:

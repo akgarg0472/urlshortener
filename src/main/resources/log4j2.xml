@@ -18,10 +18,7 @@
         <Routing name="ConsoleRouter">
             <Routes pattern="${enableConsoleLogging}">
                 <Route key="true">
-                    <Console name="Console" target="SYSTEM_OUT">
-                        <JsonTemplateLayout eventTemplateUri="classpath:JsonTemplateLayout.json"
-                                            stackTraceEnabled="true"/>
-                    </Console>
+                    <Console name="Console" target="SYSTEM_OUT"/>
                 </Route>
                 <Route key="default">
                     <AppenderRef ref="NullAppender"/>

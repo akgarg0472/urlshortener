@@ -31,6 +31,7 @@
   },
   "stackTrace": {
     "$resolver": "exception",
-    "field": "stackTrace"
+    "field": "stackTrace",
+    "stringified": true
   }
 }

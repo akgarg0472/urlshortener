@@ -1,7 +1,6 @@
 package com.akgarg.urlshortener.v1.api;
 
 import com.akgarg.urlshortener.request.ShortUrlRequest;
-import com.akgarg.urlshortener.response.GenerateUrlResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,8 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.Map;
+import java.net.URI;
 
 import static com.akgarg.urlshortener.utils.UrlShortenerUtil.checkValidationResultAndThrowExceptionOnFailedValidation;
 
@@ -25,21 +23,9 @@ public class UrlController {
 
     private final UrlService urlService;
 
-    @Operation(summary = "Ping the server", description = "This endpoint is used to check if the service is running.")
-    @GetMapping("/api/v1/ping")
-    public Map<String, String> heartbeat(
-            @Parameter(description = "HTTP Request Object", required = true) final HttpServletRequest httpRequest
-    ) {
-        return Map.of(
-                "message", "PONG!!",
-                "time", LocalDateTime.now().toString(),
-                "clientIp", httpRequest.getRemoteAddr()
-        );
-    }
-
     @Operation(summary = "Generate a Short URL", description = "This endpoint accepts a long URL and generates a shortened URL.")
     @PostMapping("/api/v1/urlshortener")
-    public ResponseEntity<GenerateUrlResponse> generateShortUrl(
+    public ResponseEntity<Object> generateShortUrl(
             @Parameter(description = "HTTP Request Object", required = true) final HttpServletRequest httpRequest,
 
             @Parameter(description = "Request body containing the URL to shorten", required = true)
@@ -48,18 +34,23 @@ public class UrlController {
     ) {
         checkValidationResultAndThrowExceptionOnFailedValidation(validationResult);
         final var response = urlService.generateShortUrl(httpRequest, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(response.statusCode()).body(response.data());
     }
 
     @Operation(summary = "Redirect to the original URL", description = "This endpoint accepts a shortened URL and redirects to the original URL.")
     @GetMapping("/{shortUrl}")
-    public ResponseEntity<Void> getAndRedirectToOriginalUrl(
+    public ResponseEntity<Object> getAndRedirectToOriginalUrl(
             @Parameter(description = "Short URL code to redirect to the original URL", required = true)
             @PathVariable final String shortUrl,
             @Parameter(description = "HTTP Request Object", required = true) final HttpServletRequest httpRequest
     ) {
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .location(urlService.getOriginalUrl(httpRequest, shortUrl))
-                .build();
+        final var response = urlService.getOriginalUrl(httpRequest, shortUrl);
+        if (response.statusCode() == HttpStatus.OK.value()) {
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location((URI) response.data())
+                    .build();
+        }
+        return ResponseEntity.status(response.statusCode()).body(response.data());
     }
+
 }

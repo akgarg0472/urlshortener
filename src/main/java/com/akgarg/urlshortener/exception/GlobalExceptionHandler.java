@@ -83,7 +83,7 @@ public class GlobalExceptionHandler {
             case null, default -> internalServerErrorResponse();
         };
 
-        return ResponseEntity.status(errorResponse.getErrorCode())
+        return ResponseEntity.status(errorResponse.getStatusCode())
                 .body(errorResponse);
     }
 

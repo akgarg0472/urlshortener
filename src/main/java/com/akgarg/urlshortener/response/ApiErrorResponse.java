@@ -5,23 +5,25 @@ import com.akgarg.urlshortener.exception.StatisticsException;
 import com.akgarg.urlshortener.exception.SubscriptionException;
 import com.akgarg.urlshortener.exception.UrlShortenerException;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import lombok.Getter;
 
 import static com.akgarg.urlshortener.response.ApiErrorResponse.ApiErrorType.*;
 
 @Getter
+@Builder
 public final class ApiErrorResponse {
 
     private final String[] errors;
 
     @JsonProperty("status_code")
-    private final int errorCode;
+    private final int statusCode;
 
     private final String message;
 
-    private ApiErrorResponse(final String[] errors, final int errorCode, String message) {
+    private ApiErrorResponse(final String[] errors, final int statusCode, String message) {
         this.errors = errors;
-        this.errorCode = errorCode;
+        this.statusCode = statusCode;
         this.message = message;
     }
 

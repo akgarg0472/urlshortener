@@ -27,15 +27,15 @@ public class SubscriptionService {
     private final SubscriptionCache subscriptionCache;
     private final Environment environment;
 
-    public boolean isUserAllowedToCreateShortUrl(final String requestId, final String userId) {
+    public SubscriptionResponse isUserAllowedToCreateShortUrl(final String requestId, final String userId) {
         log.info("Checking if userId {} is allowed to create short url", userId);
 
         try {
-            final var subscription = getUserSubscription(requestId, userId);
+            final var subscription = getUserActiveSubscription(requestId, userId);
 
             if (subscription.isEmpty()) {
-                log.info("No subscription found for userId {}", userId);
-                return false;
+                log.info("No subscription details found for userId {}", userId);
+                return new SubscriptionResponse(false, false);
             }
 
             final var allowedShortUrls = extractAllowedShortUrlsFromSubscriptionPack(subscription.get().getPack());
@@ -48,10 +48,10 @@ public class SubscriptionService {
 
             if (currentShortUrlUsageForUser >= allowedShortUrls) {
                 log.info("Short URLs threshold crossed for user. Allowed: {}, consumed: {}", allowedShortUrls, currentShortUrlUsageForUser);
-                return false;
+                return new SubscriptionResponse(true, false);
             }
 
-            return true;
+            return new SubscriptionResponse(true, true);
         } catch (Exception e) {
             log.error("Error checking if user {} is allowed to create short url", userId);
             throw new SubscriptionException(HttpStatusCode.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()),
@@ -59,15 +59,15 @@ public class SubscriptionService {
         }
     }
 
-    public boolean isUserAllowedToCreateCustomAlias(final String requestId, final String userId) {
+    public SubscriptionResponse isUserAllowedToCreateCustomAlias(final String requestId, final String userId) {
         log.info("Checking if userId {} is allowed to create custom alias", userId);
 
         try {
-            final var subscription = getUserSubscription(requestId, userId);
+            final var subscription = getUserActiveSubscription(requestId, userId);
 
             if (subscription.isEmpty()) {
                 log.info("No subscription found for userId {}", userId);
-                return false;
+                return new SubscriptionResponse(false, false);
             }
 
             final var allowedCustomAlias = extractAllowedCustomAliasesFromSubscriptionPack(subscription.get().getPack());
@@ -81,10 +81,10 @@ public class SubscriptionService {
 
             if (currentCustomAliasUsageForUser >= allowedCustomAlias) {
                 log.warn("Custom aliases are not allowed for userId {}", userId);
-                return false;
+                return new SubscriptionResponse(true, false);
             }
 
-            return true;
+            return new SubscriptionResponse(true, true);
         } catch (Exception e) {
             log.error("Error checking if custom aliases are allowed {}", userId);
             throw new SubscriptionException(HttpStatusCode.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()),
@@ -92,7 +92,7 @@ public class SubscriptionService {
         }
     }
 
-    private Optional<Subscription> getUserSubscription(final String requestId, final String userId) {
+    private Optional<Subscription> getUserActiveSubscription(final String requestId, final String userId) {
         try {
             return subscriptionCache.getSubscription(userId)
                     .or(() -> {
@@ -123,14 +123,21 @@ public class SubscriptionService {
                     .toEntity(SubscriptionApiResponse.class)
                     .getBody();
 
-            if (log.isDebugEnabled()) {
-                log.debug("Subscription API response: {}", subscriptionResponse);
+            if (log.isInfoEnabled()) {
+                log.info("Subscription API response: {}", subscriptionResponse);
             }
 
             if (subscriptionResponse == null || subscriptionResponse.statusCode() != 200) {
                 log.warn("Subscription API query failed with response code {}",
                         subscriptionResponse != null ? subscriptionResponse.statusCode() : null
                 );
+                return Optional.empty();
+            }
+
+            if (subscriptionResponse.subscriptionDto() == null || subscriptionResponse.subscriptionPackDto() == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("No subscription received from subscription service for userId {}", userId);
+                }
                 return Optional.empty();
             }
 

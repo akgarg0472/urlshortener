@@ -40,7 +40,7 @@ public class MongoUrlDatabaseService implements UrlDatabaseService {
             final var url = mongoUrlRepository.findByShortUrl(shortUrl);
 
             if (log.isDebugEnabled()) {
-                log.debug("Fetched url record for '{}' is: {}", shortUrl, url.orElse(null));
+                log.debug("Url record for '{}' is: {}", shortUrl, url.orElse(null));
             }
 
             return url;

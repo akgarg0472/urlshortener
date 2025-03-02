@@ -42,7 +42,9 @@ public class RedisSubscriptionCache implements SubscriptionCache {
 
     @Override
     public Optional<Subscription> getSubscription(final String userId) {
-        log.info("Getting subscription for userId {}", userId);
+        if (log.isDebugEnabled()) {
+            log.debug("Getting subscription for userId {}", userId);
+        }
 
         try {
             final var object = redisTemplate.opsForValue().get(createSubscriptionKey(userId));

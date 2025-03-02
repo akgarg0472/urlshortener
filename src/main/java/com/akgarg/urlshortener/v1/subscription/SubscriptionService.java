@@ -33,6 +33,10 @@ public class SubscriptionService {
         try {
             final var subscription = getUserActiveSubscription(requestId, userId);
 
+            if (log.isDebugEnabled()) {
+                log.debug("Active subscription: {}", subscription.orElse(null));
+            }
+
             if (subscription.isEmpty()) {
                 log.info("No subscription details found for userId {}", userId);
                 return new SubscriptionResponse(false, false);
@@ -65,12 +69,20 @@ public class SubscriptionService {
         try {
             final var subscription = getUserActiveSubscription(requestId, userId);
 
+            if (log.isDebugEnabled()) {
+                log.debug("Active subscription: {}", subscription.orElse(null));
+            }
+
             if (subscription.isEmpty()) {
                 log.info("No subscription found for userId {}", userId);
                 return new SubscriptionResponse(false, false);
             }
 
             final var allowedCustomAlias = extractAllowedCustomAliasesFromSubscriptionPack(subscription.get().getPack());
+
+            if (log.isDebugEnabled()) {
+                log.debug("Allowed custom aliases: {}", allowedCustomAlias);
+            }
 
             final var currentCustomAliasUsageForUser = statisticsService.getCurrentCustomAliasUsageForUser(
                     requestId,
@@ -159,6 +171,7 @@ public class SubscriptionService {
             }
             return customAlias.map(ca -> Integer.parseInt(ca.substring("custom_alias:".length()).trim())).orElse(0);
         } catch (Exception e) {
+            log.error("Error extracting allowed custom aliases from subscription pack", e);
             return 0;
         }
     }
@@ -174,6 +187,7 @@ public class SubscriptionService {
             }
             return shortUrls.map(shortUrl -> Integer.parseInt(shortUrl.substring("short_url:".length()).trim())).orElse(0);
         } catch (Exception e) {
+            log.error("Error extracting allowed short urls from subscription pack", e);
             return 0;
         }
     }

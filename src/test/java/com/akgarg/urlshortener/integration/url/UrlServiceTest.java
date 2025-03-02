@@ -5,6 +5,7 @@ import com.akgarg.urlshortener.events.StatisticsEventService;
 import com.akgarg.urlshortener.exception.UrlShortenerException;
 import com.akgarg.urlshortener.numbergenerator.NumberGeneratorService;
 import com.akgarg.urlshortener.request.ShortUrlRequest;
+import com.akgarg.urlshortener.response.GenerateUrlResponse;
 import com.akgarg.urlshortener.unit.faker.FakerService;
 import com.akgarg.urlshortener.v1.api.UrlService;
 import com.akgarg.urlshortener.v1.db.UrlDatabaseService;
@@ -89,7 +90,8 @@ final class UrlServiceTest {
         verify(httpRequest, times(2)).getAttribute(ATTRIBUTE_REQUEST_ID);
         verify(httpRequest, times(1)).getHeader(HEADER_USER_AGENT);
 
-        assertEquals(expectedShortUrl, generatedShorUrl.shortUrl(), "Short url should be same as expected short url");
+        assertInstanceOf(GenerateUrlResponse.class, generatedShorUrl.data(), "Response data should be a GenerateUrlResponse");
+        assertEquals(expectedShortUrl, ((GenerateUrlResponse) generatedShorUrl.data()).getShortUrl(), "Short url should be same as expected short url");
     }
 
     @Test
@@ -188,9 +190,11 @@ final class UrlServiceTest {
 
         final var originalUrlFromUrlService = urlService.getOriginalUrl(httpRequest, shortUrl);
 
+        assertInstanceOf(URI.class, originalUrlFromUrlService.data(), "URI should return original url");
+
         assertEquals(
                 expectedOriginalUrl,
-                originalUrlFromUrlService,
+                originalUrlFromUrlService.data(),
                 "Original url should be same as expected original url"
         );
 

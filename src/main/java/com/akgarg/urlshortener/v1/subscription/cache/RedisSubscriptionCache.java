@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +22,7 @@ public class RedisSubscriptionCache implements SubscriptionCache {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
+    private final Environment environment;
 
     @Override
     public void addSubscription(final Subscription subscription) {
@@ -32,7 +34,7 @@ public class RedisSubscriptionCache implements SubscriptionCache {
             redisTemplate.opsForValue().set(
                     createSubscriptionKey(subscription.getUserId()),
                     objectMapper.writeValueAsString(subscription),
-                    subscription.getExpiresAt() - System.currentTimeMillis(),
+                    getTTL(),
                     TimeUnit.MILLISECONDS
             );
         } catch (Exception e) {
@@ -60,6 +62,14 @@ public class RedisSubscriptionCache implements SubscriptionCache {
 
     private String createSubscriptionKey(final String userId) {
         return REDIS_SUBSCRIPTION_CACHE_PREFIX + userId;
+    }
+
+    private long getTTL() {
+        try {
+            return Long.parseLong(environment.getProperty("subscription.cache.ttl", "60000"));
+        } catch (Exception e) {
+            return 60 * 1000L;
+        }
     }
 
 }

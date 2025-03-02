@@ -70,3 +70,5 @@ subscription:
   service:
     active:
       base-path: /api/v1/subscriptions/active
+  cache:
+    ttl: 60000
